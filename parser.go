@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
+	"github.com/mattn/lastpass-go/ecb"
 	"io"
 )
 
@@ -197,11 +198,26 @@ func decrypt_aes256_cbc_base64(data []byte, encryptionKey []byte) []byte {
 }
 
 func decrypt_aes256_ecb_plain(data []byte, encryptionKey []byte) []byte {
-	return []byte{}
+	block, err := aes.NewCipher(encryptionKey)
+	if err != nil {
+		panic(err.Error())
+	}
+	dec := ecb.NewECBDecrypter(block)
+	out := make([]byte, len(data))
+	dec.CryptBlocks(out, data)
+	return pkcs7Unpad(out)
 }
 
 func decrypt_aes256_ecb_base64(data []byte, encryptionKey []byte) []byte {
-	return []byte{}
+	block, err := aes.NewCipher(encryptionKey)
+	if err != nil {
+		panic(err.Error())
+	}
+	data = decodeBase64(data)
+	dec := ecb.NewECBDecrypter(block)
+	out := make([]byte, len(data))
+	dec.CryptBlocks(out, data)
+	return pkcs7Unpad(out)
 }
 
 func decryptAES256(data []byte, encryptionKey []byte) string {
