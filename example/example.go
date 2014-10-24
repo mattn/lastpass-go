@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mattn/go-lastpass"
+	"github.com/mattn/lastpass-go"
 	"io/ioutil"
 	"log"
 	"os"
