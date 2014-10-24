@@ -15,9 +15,8 @@ type Account struct {
 }
 
 type Vault struct {
-	Accounts []*Account
+	Accounts []*Account `json:"accounts"`
 }
-
 
 func CreateVault(username, password string) (*Vault, error) {
 	session, err := login(username, password)
@@ -46,4 +45,3 @@ func CreateVault(username, password string) (*Vault, error) {
 	}
 	return vault, nil
 }
-
