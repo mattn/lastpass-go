@@ -14,26 +14,26 @@ import (
 	"strconv"
 )
 
-type Blob struct {
+type blob struct {
 	bytes             []byte
 	keyIterationCount int
 }
 
-type Session struct {
+type session struct {
 	id                string
 	keyIterationCount int
 	cookieJar         http.CookieJar
 }
 
-func login(username, password string) (*Session, error) {
+func login(username, password string) (*session, error) {
 	iterationCount, err := requestIterationCount(username)
 	if err != nil {
 		return nil, err
 	}
-	return session(username, password, iterationCount)
+	return make_session(username, password, iterationCount)
 }
 
-func session(username, password string, iterationCount int) (*Session, error) {
+func make_session(username, password string, iterationCount int) (*session, error) {
 	cookieJar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
@@ -62,10 +62,10 @@ func session(username, password string, iterationCount int) (*Session, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Session{response.SessionId, iterationCount, cookieJar}, nil
+	return &session{response.SessionId, iterationCount, cookieJar}, nil
 }
 
-func fetch(session *Session) (*Blob, error) {
+func fetch(s *session) (*blob, error) {
 	u, err := url.Parse("https://lastpass.com/getaccts.php")
 	if err != nil {
 		return nil, err
@@ -74,10 +74,10 @@ func fetch(session *Session) (*Blob, error) {
 		"mobile":    []string{"1"},
 		"b64":       []string{"1"},
 		"hash":      []string{"0.0"},
-		"PHPSESSID": []string{session.id},
+		"PHPSESSID": []string{s.id},
 	}).Encode()
 	client := &http.Client{
-		Jar: session.cookieJar,
+		Jar: s.cookieJar,
 	}
 	res, err := client.Get(u.String())
 	if err != nil {
@@ -92,7 +92,7 @@ func fetch(session *Session) (*Blob, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Blob{b, session.keyIterationCount}, nil
+	return &blob{b, s.keyIterationCount}, nil
 }
 
 func requestIterationCount(username string) (int, error) {
