@@ -1,7 +1,7 @@
 package lastpass
 
 import (
-	"code.google.com/p/go.crypto/pbkdf2"
+	"golang.org/x/crypto/pbkdf2"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/xml"
