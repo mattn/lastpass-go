@@ -27,6 +27,8 @@ $ go get github.com/mattn/lastpass-go
 
 MIT
 
+Note that this repository include code of `ecb` (Electronic Code Block) provided by Go Authors.
+
 ## Author
 
 Yasuhiro Matsumoto (a.k.a mattn)
