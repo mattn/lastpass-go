@@ -7,8 +7,9 @@ This is a port of [Ruby API](https://github.com/detunized/lastpass-ruby).
 ## Usage
 
 ```go
-vault, _ := lastpass.CreateVault(username, password)
-for _, account := range vault.Accounts {
+lp, _ := lastpass.New(username, password)
+accs, _ := lp.GetAccounts()
+for _, account := range accs {
 	fmt.Println(account.Username, account.Password)
 }
 ```
@@ -20,7 +21,7 @@ golang
 ## Installation
 
 ```
-$ go get github.com/mattn/lastpass-go
+$ go get github.com/while-loop/lastpass-go
 ```
 
 ## License
@@ -31,4 +32,4 @@ Note that this repository include code of `ecb` (Electronic Code Block) provided
 
 ## Author
 
-Yasuhiro Matsumoto (a.k.a mattn)
+Yasuhiro Matsumoto (a.k.a [mattn](https://github.com/mattn))

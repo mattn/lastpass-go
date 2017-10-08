@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mattn/lastpass-go"
+	"github.com/while-loop/lastpass-go"
 	"io/ioutil"
 	"log"
 	"os"
@@ -19,12 +19,17 @@ func main() {
 	username := lines[0]
 	password := lines[1]
 
-	vault, err := lastpass.CreateVault(username, password)
+	lp, err := lastpass.New(username, password)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for _, account := range vault.Accounts {
+	accs, err := lp.GetAccounts()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, account := range accs {
 		json.NewEncoder(os.Stdout).Encode(account)
 		fmt.Println()
 	}
