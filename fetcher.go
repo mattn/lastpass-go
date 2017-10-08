@@ -1,11 +1,11 @@
 package lastpass
 
 import (
-	"golang.org/x/crypto/pbkdf2"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
+	"golang.org/x/crypto/pbkdf2"
 	"io"
 	"io/ioutil"
 	"net/http"
