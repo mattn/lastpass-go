@@ -45,16 +45,16 @@ func (lp LastPass) GetAccounts() ([]*Account, error) {
 		return nil, err
 	}
 	accountChunks := chunks[chunkIdFromString("ACCT")]
-	vault := &Vault{Accounts: make([]*Account, len(accountChunks))}
+	accs := make([]*Account, len(accountChunks))
 
 	for i, chunk := range accountChunks {
 		account, err := parseAccount(bytes.NewReader(chunk), lp.sesh.key)
 		if err != nil {
 			return nil, err
 		}
-		vault.Accounts[i] = account
+		accs[i] = account
 	}
-	return vault.Accounts, nil
+	return accs, nil
 }
 
 // GetAccount gets LastPass account by unique ID
