@@ -60,7 +60,7 @@ func (lp LastPass) GetAccounts() ([]*Account, error) {
 // GetAccount gets LastPass account by unique ID
 // If not found, returns ErrAccountNotFound error
 func (lp LastPass) GetAccount(id string) (*Account, error) {
-	return lp.Search(id, ID, CASEINSENSITVE)
+	return lp.Search(id, Id, CaseInsensitive)
 }
 
 // Search looks for LastPass accounts matching given args.

@@ -10,27 +10,27 @@ type SearchMethod uint32
 
 const (
 	// Account fields
-	ID Field = iota
-	NAME
-	URL
-	USERNAME
+	Id       Field = iota
+	Name
+	Url
+	Username
 
 	// Match function types
-	CASESENSITVE SearchMethod = iota
-	CASEINSENSITVE
-	REGEX
-	SUBSTRINGSENSITIVE
-	SUBSTRINGINSENSITIVE
+	CaseSensitive       SearchMethod = iota
+	CaseInsensitive
+	Regex
+	SubstringSensitive
+	SubstringInensitive
 )
 
 type matchFunc func(fieldValue string, value string) bool
 
 var matchFuncs = map[SearchMethod]matchFunc{
-	CASESENSITVE:         exactMatch(true),
-	CASEINSENSITVE:       exactMatch(false),
-	SUBSTRINGSENSITIVE:   substringMatch(true),
-	SUBSTRINGINSENSITIVE: substringMatch(false),
-	REGEX:                regexMatch,
+	CaseSensitive:         exactMatch(true),
+	CaseInsensitive:       exactMatch(false),
+	SubstringSensitive:   substringMatch(true),
+	SubstringInensitive: substringMatch(false),
+	Regex:                regexMatch,
 }
 
 // regexMatch matches a fieldValue with a given pattern
@@ -67,13 +67,13 @@ func substringMatch(caseSensitive bool) func(fieldValue, matchValue string) bool
 
 func getValue(account Account, field Field) string {
 	switch field {
-	case ID:
+	case Id:
 		return account.Id
-	case NAME:
+	case Name:
 		return account.Name
-	case URL:
+	case Url:
 		return account.Url
-	case USERNAME:
+	case Username:
 		return account.Username
 	default:
 		return account.Id
