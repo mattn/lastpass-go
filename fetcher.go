@@ -23,7 +23,12 @@ type session struct {
 	id                string
 	keyIterationCount int
 	cookieJar         http.CookieJar
+	key               []byte
 }
+
+var (
+	ErrInvalidPassword = fmt.Errorf("invalid username or password")
+)
 
 func login(username, password string) (*session, error) {
 	iterationCount, err := requestIterationCount(username)
@@ -62,7 +67,12 @@ func make_session(username, password string, iterationCount int) (*session, erro
 	if err != nil {
 		return nil, err
 	}
-	return &session{response.SessionId, iterationCount, cookieJar}, nil
+
+	return &session{response.SessionId,
+		iterationCount,
+		cookieJar,
+		makeKey(username, password, iterationCount),
+	}, nil
 }
 
 func fetch(s *session) (*blob, error) {
@@ -84,6 +94,11 @@ func fetch(s *session) (*blob, error) {
 		return nil, err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusForbidden {
+		return nil, ErrInvalidPassword
+	}
+
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil && err != io.EOF {
 		return nil, err

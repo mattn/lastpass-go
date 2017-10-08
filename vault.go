@@ -2,6 +2,7 @@ package lastpass
 
 import (
 	"bytes"
+	"fmt"
 )
 
 type Account struct {
@@ -16,6 +17,10 @@ type Account struct {
 
 type Vault struct {
 	Accounts []*Account `json:"accounts"`
+}
+
+func (a Account) String() string {
+	return fmt.Sprintf("Id: %s, Name: %s, Username: %s", a.Id, a.Name, a.Username)
 }
 
 func CreateVault(username, password string) (*Vault, error) {
