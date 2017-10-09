@@ -1,0 +1,9 @@
+package lastpass
+
+var config = struct {
+    email string
+    password string
+}{
+	email:"email@gmail.com",
+	password:"password",
+}
