@@ -7,8 +7,12 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
-	"github.com/mattn/lastpass-go/ecb"
+	"github.com/while-loop/lastpass-go/ecb"
 	"io"
+	"crypto/rand"
+	"fmt"
+	"crypto/hmac"
+	"crypto/sha256"
 )
 
 func chunkIdFromBytes(b [4]byte) uint32 {
@@ -99,35 +103,49 @@ func extractChunks(r io.Reader, filter []uint32) (map[uint32][][]byte, error) {
 }
 
 func parseAccount(r io.Reader, encryptionKey []byte) (*Account, error) {
+	// id, plain
 	id, err := readItem(r)
 	if err != nil {
 		return nil, err
 	}
+
+	// name, crypt
 	name, err := readItem(r)
 	if err != nil {
 		return nil, err
 	}
+
+	// group, crpyt
 	group, err := readItem(r)
 	if err != nil {
 		return nil, err
 	}
+
+	// url, hex
 	url, err := readItem(r)
 	if err != nil {
 		return nil, err
 	}
+
+	// note, crypt
 	notes, err := readItem(r)
 	if err != nil {
 		return nil, err
 	}
 
+	// fav, bool
+	// share, _
 	for i := 0; i < 2; i++ {
 		skipItem(r)
 	}
 
+	// username, crypt
 	username, err := readItem(r)
 	if err != nil {
 		return nil, err
 	}
+
+	// password, crypt
 	password, err := readItem(r)
 	if err != nil {
 		return nil, err
@@ -171,6 +189,23 @@ func pkcs7Unpad(data []byte) []byte {
 	size := len(data)
 	unpadding := int(data[size-1])
 	return data[:(size - unpadding)]
+}
+
+func decryptBuffer(data, key []byte) []byte {
+	// ciphertext =IV  | aes-256-cbc(plaintext, key)
+	// authenticated-ciphertext = HMAC-SHA256(ciphertext, key) | ciphertext
+
+	ciphertext := data[sha256.Size:]
+	givenDigest := data[:sha256.Size]
+	h := hmac.New(sha256.New, key)
+	fmt.Println(h.Write(ciphertext))
+	calcdDigest := h.Sum(nil)
+
+	if !hmac.Equal(calcdDigest, givenDigest) {
+		panic(fmt.Errorf("payload signature check failed"))
+	}
+
+	return decrypt_aes256_cbc_plain(ciphertext, key)
 }
 
 func decrypt_aes256_cbc_plain(data []byte, encryptionKey []byte) []byte {
@@ -238,4 +273,50 @@ func decryptAES256(data []byte, encryptionKey []byte) string {
 		return string(decrypt_aes256_cbc_base64(data, encryptionKey))
 	}
 	panic("Input doesn't seem to be AES-256 encrypted")
+}
+
+func encryptAes256Cbc(plaintext, key []byte) []byte {
+	pLen := len(plaintext)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	cLen := 0
+	ciphertext := make([]byte, pLen+aes.BlockSize*2+1)
+	ciphertext[0] = '!'
+	cLen++
+
+	iv := ciphertext[1:aes.BlockSize+1]
+	n, err := io.ReadFull(rand.Reader, iv)
+	if err != nil {
+		panic(err)
+	}
+	cLen += n
+
+	mode := cipher.NewCBCEncrypter(block, iv)
+	plaintext = pkcs7Pad(plaintext, block.BlockSize())
+
+	mode.CryptBlocks(ciphertext[cLen:], plaintext)
+
+	return intBase64Encode(ciphertext)
+}
+
+// intermediate base 64 encode
+func intBase64Encode(data []byte) []byte {
+	dLen := len(data)
+
+	if dLen >= 33 && data[0] == '!' && dLen%16 == 1 {
+		// "!%s|%s"
+		offset := 1 + aes.BlockSize
+		iv := base64Encode(data[1:offset])
+		d := base64Encode(data[offset:])
+		return []byte(fmt.Sprintf("!%s|%s", iv, d))
+	}
+
+	return base64Encode(data)
+}
+
+func base64Encode(data []byte) []byte {
+	return []byte(base64.StdEncoding.EncodeToString(data))
 }

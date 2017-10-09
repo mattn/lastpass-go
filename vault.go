@@ -3,6 +3,7 @@ package lastpass
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 )
 
 type Account struct {
@@ -49,4 +50,38 @@ func CreateVault(username, password string) (*Vault, error) {
 		vault.Accounts[i] = account
 	}
 	return vault, nil
+}
+
+func (a Account) encrypt(key []byte) *url.Values {
+	//Id       plain
+	//Name     aes & b64
+	//Username aes & b64
+	//Password aes & b64
+	//Url      hex
+	//Group    aes & b64
+	//Notes    aes & b64
+
+	vals := &url.Values{}
+
+	vals.Set("aid", a.Id)
+	vals.Set("url", b2s(encodeHex(s2b(a.Url))))
+	vals.Set("username", b2s(encryptAes256Cbc(s2b(a.Username), key)))
+	vals.Set("password", b2s(encryptAes256Cbc(s2b(a.Password), key)))
+	vals.Set("extra", b2s(encryptAes256Cbc(s2b(a.Notes), key))) // notes
+	vals.Set("name", b2s(encryptAes256Cbc(s2b(a.Name), key)))
+	vals.Set("grouping", b2s(encryptAes256Cbc(s2b(a.Group), key)))
+	vals.Set("pwprotect", "off") // TODO(while-loop) find out what this field does
+
+	// request info
+	vals.Set("extjs", "1")
+	vals.Set("method", "cli")
+	return vals
+}
+
+func s2b(string string) []byte {
+	return []byte(string)
+}
+
+func b2s(data []byte) string {
+	return string(data)
 }
