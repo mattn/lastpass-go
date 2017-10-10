@@ -7,7 +7,6 @@ import (
 	"encoding/xml"
 	"strings"
 	"io"
-	"log"
 )
 
 var (
