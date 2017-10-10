@@ -28,7 +28,7 @@ $ go get github.com/while-loop/lastpass-go
 
 MIT
 
-Note that this repository include code of `ecb` (Electronic Code Block) provided by Go Authors.
+Note that this repository includes code of `ecb` (Electronic Code Block) provided by Go Authors.
 
 ## Author
 
