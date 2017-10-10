@@ -156,5 +156,24 @@ func (lp *LastPass) upsertAccount(account *Account) (string, error) {
 }
 
 func (lp *LastPass) DeleteAccount(account *Account) error {
-	return fmt.Errorf("NotImplemented")
+	bUrl, err := url.Parse(LastPassBaseUrl)
+	if err != nil {
+		return err
+	}
+	bUrl.Path = "show_website.php"
+
+	values := &url.Values{
+		"extjs":  []string{"1"},
+		"token":  []string{"lp.sesh.token"},
+		"delete": []string{"1"},
+		"aid":    []string{account.Id},
+	}
+
+	resp, err := post(bUrl, lp.sesh, values)
+	if err != nil {
+		return err
+	}
+
+	resp = resp // TODO check output
+	return nil
 }
