@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"strconv"
 	"log"
+	lcrypt "github.com/while-loop/lastpass-go/crypt"
 )
 
 type blob struct {
@@ -192,8 +193,8 @@ func makeKey(username, password string, iterationCount int) []byte {
 func makeHash(username, password string, iterationCount int) []byte {
 	key := makeKey(username, password, iterationCount)
 	if iterationCount == 1 {
-		b := sha256.Sum256([]byte(string(encodeHex(key)) + password))
-		return encodeHex(b[:])
+		b := sha256.Sum256([]byte(string(lcrypt.EncodeHex(key)) + password))
+		return lcrypt.EncodeHex(b[:])
 	}
-	return encodeHex(pbkdf2.Key([]byte(key), []byte(password), 1, 32, sha256.New))
+	return lcrypt.EncodeHex(pbkdf2.Key([]byte(key), []byte(password), 1, 32, sha256.New))
 }
