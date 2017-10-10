@@ -12,7 +12,6 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strconv"
-	"log"
 	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 )
 
@@ -122,7 +121,6 @@ func fetch(s *session) (*blob, error) {
 }
 
 func post(postUrl *url.URL, s *session, values *url.Values) (string, error) {
-	log.Println(postUrl.String())
 	if values == nil {
 		values = &url.Values{}
 	}

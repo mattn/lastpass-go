@@ -123,13 +123,14 @@ func parseAccount(r io.Reader, encryptionKey []byte) (*Account, error) {
 }
 
 func decryptBuffer(data, key []byte) []byte {
+	// used to decrypt session token
 	// ciphertext =IV  | aes-256-cbc(plaintext, key)
 	// authenticated-ciphertext = HMAC-SHA256(ciphertext, key) | ciphertext
 
 	ciphertext := data[sha256.Size:]
 	givenDigest := data[:sha256.Size]
 	h := hmac.New(sha256.New, key)
-	fmt.Println(h.Write(ciphertext))
+	h.Write(ciphertext)
 	calcdDigest := h.Sum(nil)
 
 	if !hmac.Equal(calcdDigest, givenDigest) {

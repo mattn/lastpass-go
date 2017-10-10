@@ -7,6 +7,7 @@ import (
 	"encoding/xml"
 	"strings"
 	"io"
+	"log"
 )
 
 var (
@@ -165,6 +166,23 @@ func (lp *LastPass) DeleteAccount(account *Account) error {
 		return err
 	}
 
-	resp = resp // TODO check output
+	var response struct {
+		Result struct {
+			AttrAccts_version string `xml:" accts_version,attr"  json:",omitempty"`
+			AttrAction        string `xml:" action,attr"  json:",omitempty"`
+			AttrAid           string `xml:" aid,attr"  json:",omitempty"`
+			AttrLocalupdate   string `xml:" localupdate,attr"  json:",omitempty"`
+			AttrMsg           string `xml:" msg,attr"  json:",omitempty"`
+		} `xml:" result,omitempty" json:"result,omitempty"`
+	}
+
+	if err = xml.NewDecoder(strings.NewReader(resp)).Decode(&response); err != nil && err != io.EOF {
+		return err
+	}
+
+	if response.Result.AttrMsg != "accountdeleted" {
+		return fmt.Errorf("failed to delete account %s: %s", account.Id, response.Result.AttrMsg)
+	}
+
 	return nil
 }
