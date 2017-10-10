@@ -147,21 +147,12 @@ func (lp *LastPass) CreateAccount(account *Account) (*Account, error) {
 }
 
 func (lp *LastPass) upsertAccount(account *Account) (string, error) {
-	bUrl, err := url.Parse(LastPassBaseUrl)
-	if err != nil {
-		return "", err
-	}
-	bUrl.Path = "show_website.php"
+	bUrl := BuildLastPassBaseURL("show_website.php")
 	return post(bUrl, lp.sesh, account.encrypt(lp.sesh.key))
 }
 
 func (lp *LastPass) DeleteAccount(account *Account) error {
-	bUrl, err := url.Parse(LastPassBaseUrl)
-	if err != nil {
-		return err
-	}
-	bUrl.Path = "show_website.php"
-
+	bUrl := BuildLastPassBaseURL("show_website.php")
 	values := &url.Values{
 		"extjs":  []string{"1"},
 		"token":  []string{"lp.sesh.token"},
