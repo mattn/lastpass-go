@@ -13,7 +13,7 @@ import (
 	"net/url"
 	"strconv"
 	"log"
-	lcrypt "github.com/while-loop/lastpass-go/crypt"
+	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 )
 
 type blob struct {

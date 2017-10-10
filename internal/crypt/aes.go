@@ -3,7 +3,6 @@ package crypt
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"github.com/while-loop/lastpass-go/ecb"
 	"io"
 	"crypto/rand"
 )
@@ -37,7 +36,7 @@ func Decrypt_aes256_ecb_plain(data []byte, encryptionKey []byte) []byte {
 	if err != nil {
 		panic(err.Error())
 	}
-	dec := ecb.NewECBDecrypter(block)
+	dec := NewECBDecrypter(block)
 	out := make([]byte, len(data))
 	dec.CryptBlocks(out, data)
 	return Pkcs7Unpad(out)
@@ -49,7 +48,7 @@ func Decrypt_aes256_ecb_base64(data []byte, encryptionKey []byte) []byte {
 		panic(err.Error())
 	}
 	data = DecodeBase64(data)
-	dec := ecb.NewECBDecrypter(block)
+	dec := NewECBDecrypter(block)
 	out := make([]byte, len(data))
 	dec.CryptBlocks(out, data)
 	return Pkcs7Unpad(out)

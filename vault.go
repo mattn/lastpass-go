@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/url"
-	lcrypt "github.com/while-loop/lastpass-go/crypt"
+	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 )
 
 type Account struct {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"crypto/hmac"
 	"crypto/sha256"
-	lcrypt "github.com/while-loop/lastpass-go/crypt"
+	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 )
 
 func chunkIdFromBytes(b [4]byte) uint32 {

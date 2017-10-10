@@ -9,7 +9,7 @@
 
 // See NIST SP 800-38A, pp 08-09
 
-package ecb
+package crypt
 
 import (
 	"crypto/cipher"

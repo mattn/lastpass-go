@@ -5,6 +5,14 @@ import (
 	"testing"
 )
 
+var config = struct {
+	email string
+	password string
+}{
+	email:"email@gmail.com",
+	password:"password",
+}
+
 func TestInvalidEmail(t *testing.T) {
 	lp, err := New("fakeemail@hotmail.com", "fakepassword")
 	assert.Nil(t, lp)
@@ -12,7 +20,9 @@ func TestInvalidEmail(t *testing.T) {
 }
 
 func TestCRUD(t *testing.T) {
-	t.Skip("LassPass.CreateAccount not fully impl")
+	if config.email == "email@gmail.com" {
+		t.Skip("LassPass.CreateAccount not fully impl")
+	}
 
 	accs := map[string]*Account{
 		"site1": {Name: "site1", Username: "site1@yahoo.com", Password: "site1", Url: "site1.com"},
