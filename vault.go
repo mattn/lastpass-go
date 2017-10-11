@@ -18,6 +18,7 @@ type Vault struct {
 	email string
 }
 
+// New logs into LastPass and returns a new Vault
 func New(email, password string) (*Vault, error) {
 	session, err := login(email, password)
 	if err != nil {
@@ -34,10 +35,12 @@ func New(email, password string) (*Vault, error) {
 	return &Vault{sesh: session, email: email}, nil
 }
 
+// Email returns the email associated with the vault
 func (lp Vault) Email() string {
 	return lp.email
 }
 
+// GetAccounts returns all accounts in the LastPass vault
 func (lp Vault) GetAccounts() ([]*Account, error) {
 	blob, err := fetch(lp.sesh)
 	if err != nil {
@@ -93,12 +96,16 @@ func (lp Vault) Search(value string, field Field, method SearchMethod) ([]*Accou
 	return matchedAccounts, nil
 }
 
+// UpdateAccount syncs the LastPass vault all of the fields in the
+// account variable.
 func (lp *Vault) UpdateAccount(account *Account) (*Account, error) {
 
 	_, err := lp.upsertAccount(account)
 	return account, err
 }
 
+// CreateAccount sync LastPass vault with the account info given.
+// The return value is the struct with an added Account ID
 func (lp *Vault) CreateAccount(account *Account) (*Account, error) {
 	account.Id = "0"
 	resp, err := lp.upsertAccount(account)
@@ -151,6 +158,8 @@ func (lp *Vault) upsertAccount(account *Account) (string, error) {
 	return post(bUrl, lp.sesh, account.encrypt(lp.sesh.key))
 }
 
+// DeleteAccount removes an account from the LastPass vault
+// by the Account ID
 func (lp *Vault) DeleteAccount(account *Account) error {
 	bUrl := buildLastPassURL("show_website.php")
 	values := &url.Values{
@@ -186,6 +195,8 @@ func (lp *Vault) DeleteAccount(account *Account) error {
 	return nil
 }
 
+// DeleteAccountById removes an account from LastPass
+// by the Account ID
 func (lp *Vault) DeleteAccountById(id string) error {
 	return lp.DeleteAccount(&Account{Id: id})
 }

@@ -3,7 +3,7 @@
 <p align="center">
   <img src="https://github.com/while-loop/lastpass-go/blob/master/resources/keys.png">
   <br><br><br>
-  <a href="https://godoc.org/github.com/while-loop/lastpass-go/walk"><img src="https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square"></a>
+  <a href="https://godoc.org/github.com/while-loop/lastpass-go"><img src="https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square"></a>
   <a href="https://travis-ci.org/while-loop/lastpass-go"><img src="https://img.shields.io/travis/while-loop/lastpass-go.svg?style=flat-square"></a>
   <a href="https://github.com/while-loop/lastpass-go/releases"><img src="https://img.shields.io/github/release/while-loop/lastpass-go.svg?style=flat-square"></a>
   <a href="https://coveralls.io/github/while-loop/lastpass-go"><img src="https://img.shields.io/coveralls/while-loop/lastpass-go.svg?style=flat-square"></a>
