@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"io"
 	"crypto/rand"
+	"bytes"
 )
 
 func Decrypt_aes256_cbc_plain(data []byte, encryptionKey []byte) []byte {
@@ -54,29 +55,37 @@ func Decrypt_aes256_ecb_base64(data []byte, encryptionKey []byte) []byte {
 	return Pkcs7Unpad(out)
 }
 
-func EncryptAes256Cbc(plaintext, key []byte) []byte {
-	pLen := len(plaintext)
+func encrypt_aes256_cbc(plaintext, iv, key []byte) []byte {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
 
-	cLen := 0
-	ciphertext := make([]byte, pLen+aes.BlockSize*2+1)
-	ciphertext[0] = '!'
-	cLen++
+	mode := cipher.NewCBCEncrypter(block, iv)
+	plaintext = Pkcs7Pad(plaintext, block.BlockSize())
 
-	iv := ciphertext[1:aes.BlockSize+1]
+	ciphertext := make([]byte, len(plaintext))
+	mode.CryptBlocks(ciphertext, plaintext)
+	return ciphertext
+}
+
+func Encrypt_aes256_cbc_base64(plaintext, key []byte) []byte {
+	iv, _ := getIv()
+	return encrypt_aes256_cbc_base64(plaintext, iv, key)
+}
+
+func encrypt_aes256_cbc_base64(plaintext, iv, key []byte) []byte {
+	ciphertext := bytes.NewBufferString("!")
+	ciphertext.Write(iv)
+	ciphertext.Write(encrypt_aes256_cbc(plaintext, iv, key))
+	return intBase64Encode(ciphertext.Bytes())
+}
+
+func getIv() ([]byte, int) {
+	iv := make([]byte, aes.BlockSize)
 	n, err := io.ReadFull(rand.Reader, iv)
 	if err != nil {
 		panic(err)
 	}
-	cLen += n
-
-	mode := cipher.NewCBCEncrypter(block, iv)
-	plaintext = Pkcs7Pad(plaintext, block.BlockSize())
-
-	mode.CryptBlocks(ciphertext[cLen:], plaintext)
-
-	return intBase64Encode(ciphertext)
+	return iv, n
 }

@@ -24,9 +24,8 @@ func intBase64Encode(data []byte) []byte {
 
 	if dLen >= 33 && data[0] == '!' && dLen%16 == 1 {
 		// "!%s|%s"
-		offset := 1 + aes.BlockSize
-		iv := Base64Encode(data[1:offset])
-		d := Base64Encode(data[offset:])
+		iv := Base64Encode(data[1:aes.BlockSize+1])
+		d := Base64Encode(data[1+aes.BlockSize:])
 		return []byte(fmt.Sprintf("!%s|%s", iv, d))
 	}
 
