@@ -7,6 +7,7 @@ import (
 	"encoding/xml"
 	"strings"
 	"io"
+	"log"
 )
 
 var (
@@ -141,6 +142,8 @@ func (lp *LastPass) CreateAccount(account *Account) (*Account, error) {
 	if err = xml.NewDecoder(strings.NewReader(resp)).Decode(&response); err != nil && err != io.EOF {
 		return nil, err
 	}
+
+	log.Println(resp)
 
 	account.Id = response.Result.AttrAid
 	return account, nil

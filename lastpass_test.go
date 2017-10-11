@@ -28,7 +28,7 @@ func TestCRUD(t *testing.T) {
 	}
 
 	// skip until create if finished
-	t.Skip("LassPass.CreateAccount not fully impl")
+	//t.Skip("LassPass.CreateAccount not fully impl")
 
 
 	accs := map[string]*Account{
@@ -44,8 +44,6 @@ func TestCRUD(t *testing.T) {
 	// start fresh
 	mustDeleteAccounts(lp)
 
-	assert.Equal(t, 3, len(accs))
-
 	for _, a := range accs {
 		newa, err := lp.CreateAccount(a)
 		assert.NoError(t, err)
@@ -60,9 +58,10 @@ func TestCRUD(t *testing.T) {
 		acc, exists := accs[act.Name]
 		assert.True(t, exists)
 		assert.Equal(t, acc.Username, act.Username)
-		assert.NotNil(t, lp.DeleteAccount(act))
+		assert.Nil(t, lp.DeleteAccount(act))
 	}
 
+	actuals, err = lp.GetAccounts()
 	assert.NoError(t, err)
 	assert.Empty(t, actuals)
 }

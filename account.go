@@ -33,11 +33,11 @@ func (a Account) encrypt(key []byte) *url.Values {
 
 	vals.Set("aid", a.Id)
 	vals.Set("url", b2s(lcrypt.EncodeHex(s2b(a.Url))))
-	vals.Set("username", b2s(lcrypt.EncryptAes256Cbc(s2b(a.Username), key)))
-	vals.Set("password", b2s(lcrypt.EncryptAes256Cbc(s2b(a.Password), key)))
-	vals.Set("extra", b2s(lcrypt.EncryptAes256Cbc(s2b(a.Notes), key))) // notes
-	vals.Set("name", b2s(lcrypt.EncryptAes256Cbc(s2b(a.Name), key)))
-	vals.Set("grouping", b2s(lcrypt.EncryptAes256Cbc(s2b(a.Group), key)))
+	vals.Set("username", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Username), key)))
+	vals.Set("password", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Password), key)))
+	vals.Set("extra", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Notes), key))) // notes
+	vals.Set("name", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Name), key)))
+	vals.Set("grouping", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Group), key)))
 	vals.Set("pwprotect", "off") // TODO(while-loop) find out what this field does
 
 	// request info
