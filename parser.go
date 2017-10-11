@@ -1,12 +1,12 @@
 package lastpass
 
 import (
-	"encoding/binary"
-	"io"
-	"fmt"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/binary"
+	"fmt"
 	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
+	"io"
 )
 
 func chunkIdFromBytes(b [4]byte) uint32 {

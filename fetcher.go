@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
+	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 	"golang.org/x/crypto/pbkdf2"
 	"io"
 	"io/ioutil"
@@ -12,7 +13,6 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"strconv"
-	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 )
 
 type blob struct {

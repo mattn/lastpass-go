@@ -2,8 +2,8 @@ package lastpass
 
 import (
 	"fmt"
-	"net/url"
 	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
+	"net/url"
 )
 
 type Account struct {

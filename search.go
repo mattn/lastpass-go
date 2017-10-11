@@ -10,13 +10,13 @@ type SearchMethod uint32
 
 const (
 	// Account fields
-	Id       Field = iota
+	Id Field = iota
 	Name
 	Url
 	Username
 
 	// Match function types
-	CaseSensitive       SearchMethod = iota
+	CaseSensitive SearchMethod = iota
 	CaseInsensitive
 	Regex
 	SubstringSensitive

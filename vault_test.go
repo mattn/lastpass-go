@@ -1,8 +1,8 @@
 package lastpass
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestBackwardsCompatLogin(t *testing.T) {
@@ -21,8 +21,7 @@ func TestBackwardsCompatErr(t *testing.T) {
 	assert.Nil(t, vault)
 }
 
-
-func vaultLogin(t *testing.T) *Vault{
+func vaultLogin(t *testing.T) *Vault {
 	vault, err := CreateVault(config.email, config.password)
 	assert.NoError(t, err)
 	assert.NotNil(t, vault)
