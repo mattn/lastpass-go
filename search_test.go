@@ -15,8 +15,8 @@ func TestMatchFuncs(t *testing.T) {
 		match   bool
 	}{
 		{"substring url", "m.facebook.com", "facebook.com", SubstringSensitive, true},
-		{"substring not in url", "facebook.com", "facsebook.com", SubstringInensitive, false},
-		{"substring in url", "https://stackoverflow.com/", "StackOverflow", SubstringInensitive, true},
+		{"substring not in url", "facebook.com", "facsebook.com", SubstringInsensitive, false},
+		{"substring in url", "https://stackoverflow.com/", "StackOverflow", SubstringInsensitive, true},
 		{"regex in url", "https://stackOverflow.com/", `(s|S)tack(O|o)verflow`, Regex, true},
 		{"case insens url", "youtube.com", "YouTube.com", CaseInsensitive, true},
 		{"case sens ID", "8675309", "8675309", CaseSensitive, true},

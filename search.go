@@ -20,16 +20,16 @@ const (
 	CaseInsensitive
 	Regex
 	SubstringSensitive
-	SubstringInensitive
+	SubstringInsensitive
 )
 
 type matchFunc func(fieldValue string, value string) bool
 
 var matchFuncs = map[SearchMethod]matchFunc{
-	CaseSensitive:         exactMatch(true),
-	CaseInsensitive:       exactMatch(false),
+	CaseSensitive:        exactMatch(true),
+	CaseInsensitive:      exactMatch(false),
 	SubstringSensitive:   substringMatch(true),
-	SubstringInensitive: substringMatch(false),
+	SubstringInsensitive: substringMatch(false),
 	Regex:                regexMatch,
 }
 
