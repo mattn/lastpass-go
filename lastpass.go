@@ -143,8 +143,6 @@ func (lp *LastPass) CreateAccount(account *Account) (*Account, error) {
 		return nil, err
 	}
 
-	log.Println(resp)
-
 	account.Id = response.Result.AttrAid
 	return account, nil
 }
