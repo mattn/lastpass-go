@@ -3,14 +3,19 @@ package lastpass
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"os"
+)
+
+const (
+	GoLpEmail = "GO_LP_EMAIL"
+	GoLpPass  = "GO_LP_PASS"
 )
 
 // DONT USE YOUR REAL LASTPASS ACCOUNT
 // THESE TEST WILL WIPE YOUR DATA
 //
 // to include personal passwords,
-// create a new file called "config_test.go"
-// and in the init() func set the config variable to your information
+// set env vars GO_LP_EMAIL &  GO_LP_PASS
 //
 // DONT USE YOUR REAL LASTPASS ACCOUNT
 // THESE TEST WILL WIPE YOUR DATA
@@ -18,8 +23,8 @@ var config = struct {
 	email    string
 	password string
 }{
-	email:    "email@gmail.com",
-	password: "password",
+	email:    os.Getenv(GoLpEmail),
+	password: os.Getenv(GoLpPass),
 }
 
 func TestInvalidEmail(t *testing.T) {
@@ -29,9 +34,7 @@ func TestInvalidEmail(t *testing.T) {
 }
 
 func TestCRUD(t *testing.T) {
-	if config.email == "email@gmail.com" {
-		t.Skip("LassPass.CreateAccount not fully impl")
-	}
+	needsLogin(t)
 
 	accs := map[string]*Account{
 		"site1": {Name: "site1", Username: "site1@yahoo.com", Password: "site1", Url: "site1.com"},
@@ -78,5 +81,11 @@ func mustDeleteAccounts(lp *LastPass) {
 		if err = lp.DeleteAccount(act); err != nil {
 			panic(err)
 		}
+	}
+}
+
+func needsLogin(t *testing.T) {
+	if config.email == "" || config.password == "" {
+		t.Skip("LassPass.CreateAccount not fully impl")
 	}
 }

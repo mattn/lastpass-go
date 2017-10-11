@@ -6,12 +6,15 @@ import (
 )
 
 func TestBackwardsCompatLogin(t *testing.T) {
+	needsLogin(t)
+
 	vaultLogin(t)
 }
 
 func TestBackwardsCompatVault(t *testing.T) {
-	vault := vaultLogin(t)
+	needsLogin(t)
 
+	vault := vaultLogin(t)
 	assert.NotNil(t, vault.Accounts)
 }
 
