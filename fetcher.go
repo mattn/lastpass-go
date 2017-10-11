@@ -28,7 +28,7 @@ type session struct {
 	key               []byte
 }
 
-func BuildLastPassBaseURL(path string) *url.URL {
+func buildLastPassURL(path string) *url.URL {
 	return &url.URL{
 		Scheme: "https",
 		Host:   "lastpass.com",
@@ -57,7 +57,7 @@ func make_session(username, password string, iterationCount int) (*session, erro
 		Jar: cookieJar,
 	}
 	res, err := client.PostForm(
-		BuildLastPassBaseURL("login.php").String(),
+		buildLastPassURL("login.php").String(),
 		url.Values{
 			"method":     []string{"mobile"},
 			"web":        []string{"1"},
@@ -89,7 +89,7 @@ func make_session(username, password string, iterationCount int) (*session, erro
 }
 
 func fetch(s *session) (*blob, error) {
-	u := BuildLastPassBaseURL("getaccts.php")
+	u := buildLastPassURL("getaccts.php")
 	u.RawQuery = (&url.Values{
 		"mobile":    []string{"1"},
 		"b64":       []string{"1"},
@@ -162,7 +162,7 @@ func encodeValues(values *url.Values) *url.Values {
 
 func requestIterationCount(username string) (int, error) {
 	res, err := http.DefaultClient.PostForm(
-		BuildLastPassBaseURL("iterations.php").String(),
+		buildLastPassURL("iterations.php").String(),
 		url.Values{
 			"email": []string{username},
 		})
