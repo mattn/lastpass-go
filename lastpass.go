@@ -2,12 +2,12 @@ package lastpass
 
 import (
 	"bytes"
-	"fmt"
-	"net/url"
 	"encoding/xml"
-	"strings"
+	"fmt"
 	"io"
 	"log"
+	"net/url"
+	"strings"
 )
 
 var (
@@ -187,4 +187,8 @@ func (lp *LastPass) DeleteAccount(account *Account) error {
 	}
 
 	return nil
+}
+
+func (lp *LastPass) DeleteAccountById(id string) error {
+	return lp.DeleteAccount(&Account{Id: id})
 }
