@@ -1,4 +1,5 @@
-# LastPass Go API
+LastPass Go API
+===============
 
 <p align="center">
   <img src="https://github.com/while-loop/lastpass-go/blob/master/resources/keys.png">
@@ -13,15 +14,26 @@
 
 **This is an unofficial LastPass API.**
 
-This is a port of [Ruby API](https://github.com/detunized/lastpass-ruby).
+Check out [lastpass/lastpass-cli](https://github.com/LastPass/lastpass-cli) for an Official LastPass product
 
-## Installation
+This is a port of the [Ruby LastPass API](https://github.com/detunized/lastpass-ruby).
+
+Features
+--------
+
+- Create/Update accounts
+- Delete accounts
+- Get accounts
+
+Installation
+------------
 
 ```
 $ go get github.com/while-loop/lastpass-go
 ```
 
-## Usage
+Usage
+-----
 
 ```go
 lp, _ := lastpass.New(username, password)
@@ -31,6 +43,16 @@ for _, account := range accs {
 }
 ```
 
+TODO
+----
+
+These are future plans for the project, feel free fork/pr these features
+if I don't get to them in time.
+
+- 2FA login
+- Shared groups
+- Secured notes
+
 Changelog
 ---------
 
@@ -39,16 +61,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 [CHANGELOG.md](CHANGELOG.md)
 
-## License
+License
+-------
 
 lastpass-go is licensed under the MIT license. See [LICENSE](LICENSE) for details.
 
 Note that this repository includes code of `ecb` (Electronic Code Block) provided by Go Authors.
 
-## Original Author
+Original Author
+---------------
 
 Yasuhiro Matsumoto (a.k.a [mattn](https://github.com/mattn))
 
-## Current Author
+Current Author
+--------------
 
 Anthony Alves
