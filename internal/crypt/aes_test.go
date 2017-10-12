@@ -1,10 +1,10 @@
 package crypt
 
 import (
-	"testing"
+	"crypto/aes"
 	"crypto/sha256"
 	"github.com/stretchr/testify/assert"
-	"crypto/aes"
+	"testing"
 )
 
 func TestEncrypt_aes256_cbc(t *testing.T) {
@@ -12,7 +12,7 @@ func TestEncrypt_aes256_cbc(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, sha256.Size, len(key))
 
-	iv, err:= DecodeHex([]byte("a07c8d27359fdf50c66675c3e07bd5e1"))
+	iv, err := DecodeHex([]byte("a07c8d27359fdf50c66675c3e07bd5e1"))
 	assert.NoError(t, err)
 	assert.Equal(t, len(iv), aes.BlockSize)
 

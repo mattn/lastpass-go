@@ -1,12 +1,12 @@
 package crypt
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"io"
 	"crypto/rand"
-	"bytes"
 	"github.com/pkg/errors"
+	"io"
 )
 
 func Decrypt_aes256_cbc_plain(data []byte, encryptionKey []byte) ([]byte, error) {

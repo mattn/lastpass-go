@@ -2,8 +2,8 @@ package lastpass
 
 import (
 	"github.com/stretchr/testify/assert"
-	"testing"
 	"os"
+	"testing"
 )
 
 const (
@@ -40,7 +40,7 @@ func TestCRUD(t *testing.T) {
 		"site1": {Name: "site1", Username: "site1@yahoo.com", Password: "site1", Url: "site1.com"},
 		"site2": {Name: "site2", Username: "site2@yahoo.com", Password: "site2", Url: "site2.com"},
 		"site3": {Name: "site3", Username: "site2@yahoo.com", Password: "site3", Url: "site2.com"},
-}
+	}
 
 	lp, err := New(config.email, config.password)
 	assert.NoError(t, err)

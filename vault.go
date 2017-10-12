@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"github.com/pkg/errors"
 	"io"
 	"net/url"
 	"strings"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -160,7 +160,7 @@ func (lp *Vault) upsertAccount(account *Account) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "failed to encrypt account")
 	}
-	return post(bUrl, lp.sesh,vals)
+	return post(bUrl, lp.sesh, vals)
 }
 
 // DeleteAccount removes an account from the LastPass vault

@@ -2,9 +2,9 @@ package lastpass
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 	"net/url"
-	"github.com/pkg/errors"
 )
 
 type Account struct {
@@ -21,7 +21,7 @@ func (a Account) String() string {
 	return fmt.Sprintf("Id: %s, Name: %s, Username: %s", a.Id, a.Name, a.Username)
 }
 
-func (a Account) encrypt(key []byte) (*url.Values ,error){
+func (a Account) encrypt(key []byte) (*url.Values, error) {
 	//Id       plain
 	//Name     aes & b64
 	//Username aes & b64

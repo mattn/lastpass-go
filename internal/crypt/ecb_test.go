@@ -2,8 +2,8 @@ package crypt
 
 import (
 	"crypto/aes"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewECBEncryptor(t *testing.T) {
@@ -31,7 +31,7 @@ func TestNewECBDecryptor(t *testing.T) {
 	test := make([]byte, len(ciphertext))
 
 	//when
-	dec:= NewECBDecrypter(block)
+	dec := NewECBDecrypter(block)
 	dec.CryptBlocks(test, ciphertext)
 
 	assert.Equal(t, block.BlockSize(), dec.BlockSize())
