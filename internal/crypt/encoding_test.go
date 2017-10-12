@@ -43,7 +43,12 @@ func TestIntBase64EncodeNoCustomizing(t *testing.T) {
 	b.Write(iv)
 	b.Write(data)
 
-
 	actual := Base64Encode(b.Bytes())
 	assert.Equal(t, actual, intBase64Encode(b.Bytes()))
+}
+
+func TestDecodeBase64(t *testing.T) {
+	decoded, err := DecodeBase64([]byte("Z2cgbm8gcmUgdG9vIGV6"))
+	assert.NoError(t, err)
+	assert.Equal(t, "gg no re too ez", string(decoded))
 }

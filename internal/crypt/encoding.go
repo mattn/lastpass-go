@@ -6,16 +6,20 @@ import (
 	"encoding/hex"
 	"crypto/aes"
 	"fmt"
+	"github.com/pkg/errors"
 )
 
 func Base64Encode(data []byte) []byte {
 	return []byte(base64.StdEncoding.EncodeToString(data))
 }
 
-func DecodeBase64(b []byte) []byte {
+func DecodeBase64(b []byte) ([]byte, error) {
 	d := make([]byte, len(b))
-	n, _ := base64.StdEncoding.Decode(d, b)
-	return d[:n]
+	n, err := base64.StdEncoding.Decode(d, b)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode b64")
+	}
+	return d[:n], nil
 }
 
 // intermediate base 64 encode
@@ -50,8 +54,11 @@ func EncodeHex(b []byte) []byte {
 	return d[:n]
 }
 
-func DecodeHex(b []byte) []byte {
+func DecodeHex(b []byte) ([]byte, error) {
 	d := make([]byte, len(b))
-	n, _ := hex.Decode(d, b)
-	return d[:n]
+	n, err := hex.Decode(d, b)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode hex")
+	}
+	return d[:n], nil
 }

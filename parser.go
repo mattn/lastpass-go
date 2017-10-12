@@ -7,6 +7,7 @@ import (
 	"fmt"
 	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 	"io"
+	"github.com/pkg/errors"
 )
 
 func chunkIdFromBytes(b [4]byte) uint32 {
@@ -112,17 +113,22 @@ func parseAccount(r io.Reader, encryptionKey []byte) (*Account, error) {
 		return nil, sr.err
 	}
 
-	return &Account{
+	sr = stickyReader{}
+	acc := &Account{
 		string(id),
-		string(decryptAES256(name, encryptionKey)),
-		string(decryptAES256(username, encryptionKey)),
-		string(decryptAES256(password, encryptionKey)),
-		string(lcrypt.DecodeHex(url)),
-		string(decryptAES256(group, encryptionKey)),
-		string(decryptAES256(notes, encryptionKey))}, nil
+		sr.decryptAES256(name, encryptionKey),
+		sr.decryptAES256(username, encryptionKey),
+		sr.decryptAES256(password, encryptionKey),
+		sr.DecodeHex(url),
+		sr.decryptAES256(group, encryptionKey),
+		sr.decryptAES256(notes, encryptionKey)}
+	if sr.hasErr() {
+		return nil, errors.Wrap(sr.err, "failed to decrypt account")
+	}
+	return acc, nil
 }
 
-func decryptBuffer(data, key []byte) []byte {
+func decryptBuffer(data, key []byte) ([]byte, error) {
 	// used to decrypt session token
 	// ciphertext =IV  | aes-256-cbc(plaintext, key)
 	// authenticated-ciphertext = HMAC-SHA256(ciphertext, key) | ciphertext
@@ -134,30 +140,46 @@ func decryptBuffer(data, key []byte) []byte {
 	calcdDigest := h.Sum(nil)
 
 	if !hmac.Equal(calcdDigest, givenDigest) {
-		panic(fmt.Errorf("payload signature check failed"))
+		return nil, fmt.Errorf("payload signature check failed")
 	}
 
 	return lcrypt.Decrypt_aes256_cbc_plain(ciphertext, key)
 }
 
-func decryptAES256(data []byte, encryptionKey []byte) string {
+func decryptAES256(data []byte, encryptionKey []byte) (string, error) {
 	size := len(data)
 	size16 := size % 16
 	size64 := size % 64
 
 	switch {
 	case size == 0:
-		return ""
+		return "", nil
 	case size16 == 0:
-		return string(lcrypt.Decrypt_aes256_ecb_plain(data, encryptionKey))
+		ptext, err := lcrypt.Decrypt_aes256_ecb_plain(data, encryptionKey)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to decrypt field")
+		}
+		return string(ptext), nil
 	case size64 == 0 || size64 == 24 || size64 == 44:
-		return string(lcrypt.Decrypt_aes256_ecb_base64(data, encryptionKey))
+		ptext, err := lcrypt.Decrypt_aes256_ecb_base64(data, encryptionKey)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to decrypt field")
+		}
+		return string(ptext), nil
 	case size16 == 1:
-		return string(lcrypt.Decrypt_aes256_cbc_plain(data[1:], encryptionKey))
+		ptext, err := lcrypt.Decrypt_aes256_cbc_plain(data[1:], encryptionKey)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to decrypt field")
+		}
+		return string(ptext), nil
 	case size64 == 6 || size64 == 26 || size64 == 50:
-		return string(lcrypt.Decrypt_aes256_cbc_base64(data, encryptionKey))
+		ptext, err := lcrypt.Decrypt_aes256_cbc_base64(data, encryptionKey)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to decrypt field")
+		}
+		return string(ptext), nil
 	}
-	panic("Input doesn't seem to be AES-256 encrypted")
+	return "", fmt.Errorf("Input doesn't seem to be AES-256 encrypted")
 }
 
 type stickyReader struct {
@@ -170,6 +192,26 @@ func (s *stickyReader) skipItem(reader io.Reader) {
 	}
 
 	skipItem(reader)
+}
+func (s *stickyReader) DecodeHex(val []byte) string {
+	if s.hasErr() {
+		return ""
+	}
+	ptext, err := lcrypt.DecodeHex(val)
+	if err != nil {
+		s.err = err
+	}
+	return string(ptext)
+}
+func (s *stickyReader) decryptAES256(name, encryptionKey []byte) string {
+	if s.hasErr() {
+		return ""
+	}
+	ptext, err := decryptAES256(name, encryptionKey)
+	if err != nil {
+		s.err = err
+	}
+	return ptext
 }
 func (s *stickyReader) readItem(reader io.Reader) []byte {
 	if s.hasErr() {

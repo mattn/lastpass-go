@@ -4,6 +4,7 @@ import (
 	"fmt"
 	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 	"net/url"
+	"github.com/pkg/errors"
 )
 
 type Account struct {
@@ -20,7 +21,7 @@ func (a Account) String() string {
 	return fmt.Sprintf("Id: %s, Name: %s, Username: %s", a.Id, a.Name, a.Username)
 }
 
-func (a Account) encrypt(key []byte) *url.Values {
+func (a Account) encrypt(key []byte) (*url.Values ,error){
 	//Id       plain
 	//Name     aes & b64
 	//Username aes & b64
@@ -33,17 +34,41 @@ func (a Account) encrypt(key []byte) *url.Values {
 
 	vals.Set("aid", a.Id)
 	vals.Set("url", b2s(lcrypt.EncodeHex(s2b(a.Url))))
-	vals.Set("username", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Username), key)))
-	vals.Set("password", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Password), key)))
-	vals.Set("extra", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Notes), key))) // notes
-	vals.Set("name", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Name), key)))
-	vals.Set("grouping", b2s(lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Group), key)))
-	vals.Set("pwprotect", "off") // TODO(while-loop) find out what this field does
+	tmp, err := lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Username), key)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to encrypt username")
+	}
+	vals.Set("username", b2s(tmp))
 
+	tmp, err = lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Password), key)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to encrypt Password")
+	}
+	vals.Set("password", b2s(tmp))
+
+	tmp, err = lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Notes), key)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to encrypt Notes")
+	}
+	vals.Set("extra", b2s(tmp)) // notes
+
+	tmp, err = lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Name), key)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to encrypt Name")
+	}
+	vals.Set("name", b2s(tmp))
+
+	tmp, err = lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Group), key)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to encrypt Group")
+	}
+	vals.Set("grouping", b2s(tmp))
+
+	vals.Set("pwprotect", "off")
 	// request info
 	vals.Set("extjs", "1")
 	vals.Set("method", "cli")
-	return vals
+	return vals, nil
 }
 
 func s2b(string string) []byte {

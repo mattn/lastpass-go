@@ -41,6 +41,7 @@ func (x *ecbEncrypter) CryptBlocks(dst, src []byte) {
 	if len(src)%x.blockSize != 0 {
 		panic("crypto/cipher: input not full blocks")
 	}
+
 	if len(dst) < len(src) {
 		panic("crypto/cipher: output smaller than input")
 	}

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/url"
 	"strings"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -155,7 +156,11 @@ func (lp *Vault) CreateAccount(account *Account) (*Account, error) {
 
 func (lp *Vault) upsertAccount(account *Account) (string, error) {
 	bUrl := buildLastPassURL("show_website.php")
-	return post(bUrl, lp.sesh, account.encrypt(lp.sesh.key))
+	vals, err := account.encrypt(lp.sesh.key)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to encrypt account")
+	}
+	return post(bUrl, lp.sesh,vals)
 }
 
 // DeleteAccount removes an account from the LastPass vault
