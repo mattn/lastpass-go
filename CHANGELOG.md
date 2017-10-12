@@ -11,7 +11,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Initial Release
 - LastPass struct is now Vault
 
-[1.0.0]: https://github.com/while-loop/lastpass-go/releases/tag/1.0.0
-[1.0.1]: https://github.com/while-loop/lastpass-go/compare/1.0.0...1.0.1
+## [1.1.0] 10-11-2017
+### Changed
+- Many internal functions now return errors instead of panicking
+
+[1.0.0]: https://github.com/while-loop/lastpass-go/releases/tag/v1.0.0
+[1.1.0]: https://github.com/while-loop/lastpass-go/compare/v1.0.0...v1.0.1
 
 [comment]: # (Added, Changed, Removed)
