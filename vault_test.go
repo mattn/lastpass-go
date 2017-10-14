@@ -78,6 +78,29 @@ func TestCRUD(t *testing.T) {
 	assert.Empty(t, actuals)
 }
 
+func TestChangePassword(t *testing.T) {
+	needsLogin(t)
+
+	lp, err:=New(config.email, config.password)
+	assert.NoError(t, err)
+	assert.NotNil(t, lp)
+
+	acc := &Account{Name: "testchange", Username: "site1@yahoo.com", Password: "site1", Url: "site1.com"}
+	acc, err = lp.CreateAccount(acc)
+	assert.NotEqual(t, "0", acc.Id)
+	assert.NoError(t, err)
+
+	acc.Password = "newpass"
+	_, err = lp.UpdateAccount(acc)
+	assert.NoError(t, err)
+
+	a, err :=lp.GetAccount(acc.Id)
+	assert.NoError(t, err)
+	assert.Equal(t, "newpass", a.Password)
+
+	assert.NoError(t, lp.DeleteAccountById(a.Id))
+}
+
 func TestIncorrectGoogleAuthCode(t *testing.T) {
 	if os.Getenv("MOCK_LP") != "" {
 		t.Logf("running %s in mock mode", t.Name())
