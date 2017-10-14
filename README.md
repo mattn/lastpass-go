@@ -49,7 +49,7 @@ for _, account := range accs {
 #### With Multi-factor Auth
 
 ```go
-lp, err := New(email, password, WithMultiFactor("5412548"))
+lp, err := lastpass.New(email, password, WithMultiFactor("5412548"))
 accs, _ := lp.GetAccounts()
 for _, account := range accs {
 	fmt.Println(account.Username, account.Password)
