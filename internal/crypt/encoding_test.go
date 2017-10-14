@@ -52,3 +52,15 @@ func TestDecodeBase64(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "gg no re too ez", string(decoded))
 }
+
+func TestDecodeBase64WithInvalidChars(t *testing.T) {
+	decoded, err := DecodeBase64([]byte("-z*/asdag"))
+	assert.Nil(t, decoded)
+	assert.Error(t, err)
+}
+
+func TestDecodeHexWithInvalidChars(t *testing.T) {
+	decoded, err := DecodeHex([]byte("-z*/asdag"))
+	assert.Nil(t, decoded)
+	assert.Error(t, err)
+}

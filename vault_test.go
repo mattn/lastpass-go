@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+	"gopkg.in/jarcoal/httpmock.v1"
 )
 
 const (
@@ -30,7 +31,13 @@ var config = struct {
 func TestInvalidEmail(t *testing.T) {
 	lp, err := New("fakeemail@hotmail.com", "fakepassword")
 	assert.Nil(t, lp)
-	assert.Equal(t, ErrInvalidPassword, err)
+	assert.EqualError(t, err, ErrInvalidEmail.Error())
+}
+
+func TestInvalidPassword(t *testing.T) {
+	lp, err := New(config.email, "fakepassword")
+	assert.Nil(t, lp)
+	assert.EqualError(t, err, ErrInvalidPassword.Error())
 }
 
 func TestCRUD(t *testing.T) {
@@ -69,6 +76,51 @@ func TestCRUD(t *testing.T) {
 	actuals, err = lp.GetAccounts()
 	assert.NoError(t, err)
 	assert.Empty(t, actuals)
+}
+
+func TestIncorrectGoogleAuthCode(t *testing.T) {
+	if os.Getenv("MOCK_LP") != "" {
+		t.Logf("running %s in mock mode", t.Name())
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+
+		data := `<response><error message="Google Authenticator authentication failed!" cause="googleauthfailed" allowmultifactortrust="true" tempuid="160828192" trustexpired="0" trustlabel="" hidedisable="false"  /></response>`
+		httpmock.RegisterResponder("POST", buildLastPassURL(iterationsPage).String(), httpmock.NewStringResponder(200, "5461"))
+		httpmock.RegisterResponder("POST", buildLastPassURL(loginPage).String(), httpmock.NewStringResponder(200, data))
+	}
+
+	lp, err := New("zqg45101@loaoa.com", "qwerty123", WithMultiFactor("-3"))
+	assert.Nil(t, lp)
+	assert.EqualError(t, err, ErrInvalidGoogleAuthCode.Error())
+}
+
+func TestNoGoogleAuthCodeGiven(t *testing.T) {
+	if os.Getenv("MOCK_LP") != "" {
+		t.Logf("running %s in mock mode", t.Name())
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+
+		data := `<response><error message="Google Authenticator authentication required! Upgrade your browser extension so you can enter it." cause="googleauthrequired" allowmultifactortrust="true" tempuid="160828192" trustexpired="0" trustlabel="" hidedisable="false"  /></response>`
+		httpmock.RegisterResponder("POST", buildLastPassURL(iterationsPage).String(), httpmock.NewStringResponder(200, "5461"))
+		httpmock.RegisterResponder("POST", buildLastPassURL(loginPage).String(), httpmock.NewStringResponder(200, data))
+	}
+
+	lp, err := New("ocr94395@loaoa.com", "qwerty123")
+	assert.Nil(t, lp)
+	assert.EqualError(t, err, ErrInvalidGoogleAuthCode.Error())
+}
+func TestInvalidYubiKey(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+	t.Logf("running %s in mock mode", t.Name())
+
+	data := `<response><error message="blah blah" cause="yubikeyrestricted" allowmultifactortrust="true" tempuid="160828192" trustexpired="0" trustlabel="" hidedisable="false"  /></response>`
+	httpmock.RegisterResponder("POST", buildLastPassURL(iterationsPage).String(), httpmock.NewStringResponder(200, "5461"))
+	httpmock.RegisterResponder("POST", buildLastPassURL(loginPage).String(), httpmock.NewStringResponder(200, data))
+
+	lp, err := New("zqg4s5101@loaoa.com", "qwerty123")
+	assert.Nil(t, lp)
+	assert.EqualError(t, err, ErrInvalidYubiKey.Error())
 }
 
 func mustDeleteAccounts(lp *Vault) {

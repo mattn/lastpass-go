@@ -24,6 +24,7 @@ Features
 - Create/Update accounts
 - Delete accounts
 - Get accounts
+- Multi-factor authentication
 
 Installation
 ------------
@@ -35,8 +36,20 @@ $ go get github.com/while-loop/lastpass-go
 Usage
 -----
 
+[Example Usages](vault_test.go)
+
 ```go
-lp, _ := lastpass.New(username, password)
+lp, _ := lastpass.New(email, password)
+accs, _ := lp.GetAccounts()
+for _, account := range accs {
+	fmt.Println(account.Username, account.Password)
+}
+```
+
+#### With Multi-factor Auth
+
+```go
+lp, err := New(email, password, WithMultiFactor("5412548"))
 accs, _ := lp.GetAccounts()
 for _, account := range accs {
 	fmt.Println(account.Username, account.Password)
@@ -49,7 +62,6 @@ TODO
 These are future plans for the project, feel free fork/pr these features
 if I don't get to them in time.
 
-- 2FA login
 - Shared groups
 - Secured notes
 

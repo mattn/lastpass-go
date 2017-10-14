@@ -84,7 +84,7 @@ func encrypt_aes256_cbc(plaintext, iv, key []byte) ([]byte, error) {
 func Encrypt_aes256_cbc_base64(plaintext, key []byte) ([]byte, error) {
 	iv, _, err := getIv()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get iv to encode aes256")
 	}
 
 	ctext, err := encrypt_aes256_cbc_base64(plaintext, iv, key)

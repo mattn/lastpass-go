@@ -17,11 +17,17 @@ var (
 type Vault struct {
 	sesh  *session
 	email string
+	opts  *ConfigOptions
 }
 
 // New logs into LastPass and returns a new Vault
-func New(email, password string) (*Vault, error) {
-	session, err := login(email, password)
+func New(email, password string, opts ...ConfigFunc) (*Vault, error) {
+	configOpts := new(ConfigOptions)
+	for _, opt := range opts {
+		opt(configOpts)
+	}
+
+	session, err := login(email, password, configOpts.multiFactor)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +39,7 @@ func New(email, password string) (*Vault, error) {
 		return nil, err
 	}
 
-	return &Vault{sesh: session, email: email}, nil
+	return &Vault{sesh: session, email: email, opts: configOpts}, nil
 }
 
 // Email returns the email associated with the vault
