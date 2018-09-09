@@ -2,8 +2,9 @@ package crypt
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIntBase64Encode(t *testing.T) {

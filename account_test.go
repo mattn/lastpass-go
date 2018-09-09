@@ -2,6 +2,7 @@ package lastpass
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/assert"
 )
 

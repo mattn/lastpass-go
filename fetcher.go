@@ -1,20 +1,21 @@
 package lastpass
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
-	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
-	"golang.org/x/crypto/pbkdf2"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"strconv"
+
+	lcrypt "github.com/djui/lastpass-go/internal/crypt"
 	"github.com/pkg/errors"
-	"bytes"
+	"golang.org/x/crypto/pbkdf2"
 )
 
 type blob struct {
@@ -31,10 +32,9 @@ type session struct {
 }
 
 const (
-	loginPage = "login.php"
-	iterationsPage = "iterations.php"
+	loginPage       = "login.php"
+	iterationsPage  = "iterations.php"
 	getAccountsPage = "getaccts.php"
-
 )
 
 var (
@@ -80,7 +80,7 @@ func make_session(username, password string, iterationCount int, multiFactor str
 	var response struct {
 		SessionId string `xml:"sessionid,attr"`
 		Token     string `xml:"token,attr"`
-		ErrResp *struct {
+		ErrResp   *struct {
 			AttrAllowmultifactortrust string `xml:" allowmultifactortrust,attr"  json:",omitempty"`
 			AttrCause                 string `xml:" cause,attr"  json:",omitempty"`
 			AttrHidedisable           string `xml:" hidedisable,attr"  json:",omitempty"`

@@ -2,9 +2,10 @@ package lastpass
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
-	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 	"net/url"
+
+	lcrypt "github.com/djui/lastpass-go/internal/crypt"
+	"github.com/pkg/errors"
 )
 
 type Account struct {

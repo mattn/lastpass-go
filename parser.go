@@ -5,9 +5,10 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
-	"github.com/pkg/errors"
-	lcrypt "github.com/while-loop/lastpass-go/internal/crypt"
 	"io"
+
+	lcrypt "github.com/djui/lastpass-go/internal/crypt"
+	"github.com/pkg/errors"
 )
 
 func chunkIdFromBytes(b [4]byte) uint32 {

@@ -3,8 +3,9 @@ package crypt
 import (
 	"crypto/aes"
 	"crypto/sha256"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncrypt_aes256_cbc(t *testing.T) {

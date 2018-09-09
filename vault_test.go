@@ -1,9 +1,10 @@
 package lastpass
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/jarcoal/httpmock.v1"
 )
 
@@ -81,7 +82,7 @@ func TestCRUD(t *testing.T) {
 func TestChangePassword(t *testing.T) {
 	needsLogin(t)
 
-	lp, err:=New(config.email, config.password)
+	lp, err := New(config.email, config.password)
 	assert.NoError(t, err)
 	assert.NotNil(t, lp)
 
@@ -94,7 +95,7 @@ func TestChangePassword(t *testing.T) {
 	_, err = lp.UpdateAccount(acc)
 	assert.NoError(t, err)
 
-	a, err :=lp.GetAccount(acc.Id)
+	a, err := lp.GetAccount(acc.Id)
 	assert.NoError(t, err)
 	assert.Equal(t, "newpass", a.Password)
 

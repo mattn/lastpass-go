@@ -2,7 +2,8 @@ package lastpass
 
 import (
 	"testing"
-	"github.com/while-loop/lastpass-go/internal/crypt"
+
+	"github.com/djui/lastpass-go/internal/crypt"
 	"github.com/stretchr/testify/assert"
 )
 

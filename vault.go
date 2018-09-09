@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"github.com/pkg/errors"
 	"io"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var (
