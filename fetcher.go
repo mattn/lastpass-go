@@ -37,6 +37,7 @@ const (
 	getAccountsPage = "getaccts.php"
 )
 
+// Enumeration of common errors.
 var (
 	ErrInvalidPassword       = fmt.Errorf("invalid password")
 	ErrInvalidEmail          = fmt.Errorf("invalid username or password")
@@ -49,10 +50,10 @@ func login(username, password string, multiFactor string) (*session, error) {
 	if err != nil {
 		return nil, err
 	}
-	return make_session(username, password, iterationCount, multiFactor)
+	return makeSession(username, password, iterationCount, multiFactor)
 }
 
-func make_session(username, password string, iterationCount int, multiFactor string) (*session, error) {
+func makeSession(username, password string, iterationCount int, multiFactor string) (*session, error) {
 	cookieJar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
@@ -78,17 +79,17 @@ func make_session(username, password string, iterationCount int, multiFactor str
 
 	defer res.Body.Close()
 	var response struct {
-		SessionId string `xml:"sessionid,attr"`
+		SessionID string `xml:"sessionid,attr"`
 		Token     string `xml:"token,attr"`
 		ErrResp   *struct {
-			AttrAllowmultifactortrust string `xml:" allowmultifactortrust,attr"  json:",omitempty"`
-			AttrCause                 string `xml:" cause,attr"  json:",omitempty"`
-			AttrHidedisable           string `xml:" hidedisable,attr"  json:",omitempty"`
-			AttrMessage               string `xml:" message,attr"  json:",omitempty"`
-			AttrTempuid               string `xml:" tempuid,attr"  json:",omitempty"`
-			AttrTrustexpired          string `xml:" trustexpired,attr"  json:",omitempty"`
-			AttrTrustlabel            string `xml:" trustlabel,attr"  json:",omitempty"`
-		} `xml:" error,omitempty" json:"error,omitempty"`
+			AttrAllowMultifactorTrust string `xml:"allowmultifactortrust,attr" json:",omitempty"`
+			AttrCause                 string `xml:"cause,attr" json:",omitempty"`
+			AttrHideDisable           string `xml:"hidedisable,attr" json:",omitempty"`
+			AttrMessage               string `xml:"message,attr" json:",omitempty"`
+			AttrTempUID               string `xml:"tempuid,attr" json:",omitempty"`
+			AttrTrustExpired          string `xml:"trustexpired,attr" json:",omitempty"`
+			AttrTrustLabel            string `xml:"trustlabel,attr" json:",omitempty"`
+		} `xml:"error,omitempty" json:"error,omitempty"`
 	}
 
 	// read to bytes for debugging
@@ -118,7 +119,7 @@ func make_session(username, password string, iterationCount int, multiFactor str
 	}
 
 	key := makeKey(username, password, iterationCount)
-	return &session{response.SessionId,
+	return &session{response.SessionID,
 		response.Token,
 		iterationCount,
 		cookieJar,
@@ -148,7 +149,6 @@ func fetch(s *session) (*blob, error) {
 		return nil, err
 	}
 
-	//fmt.Println(string(b))
 	if res.StatusCode == http.StatusForbidden {
 		return nil, ErrInvalidPassword
 	}
@@ -160,7 +160,7 @@ func fetch(s *session) (*blob, error) {
 	return &blob{b, s.keyIterationCount}, nil
 }
 
-func post(postUrl *url.URL, s *session, values *url.Values) (string, error) {
+func post(postURL *url.URL, s *session, values *url.Values) (string, error) {
 	if values == nil {
 		values = &url.Values{}
 	}
@@ -168,7 +168,7 @@ func post(postUrl *url.URL, s *session, values *url.Values) (string, error) {
 	values.Set("token", string(s.token))
 	client := newClient(s.cookieJar)
 
-	res, err := client.PostForm(postUrl.String(), *values)
+	res, err := client.PostForm(postURL.String(), *values)
 	if err != nil {
 		return "", err
 	}

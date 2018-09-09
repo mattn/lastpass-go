@@ -8,18 +8,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Account describes an account.
 type Account struct {
-	Id       string `json:"id"`
+	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Url      string `json:"url"`
+	URL      string `json:"url"`
 	Group    string `json:"group"`
 	Notes    string `json:"notes"`
 }
 
 func (a Account) String() string {
-	return fmt.Sprintf("Id: %s, Name: %s, Username: %s", a.Id, a.Name, a.Username)
+	return fmt.Sprintf("Id: %s, Name: %s, Username: %s", a.ID, a.Name, a.Username)
 }
 
 func (a Account) encrypt(key []byte) (*url.Values, error) {
@@ -33,33 +34,33 @@ func (a Account) encrypt(key []byte) (*url.Values, error) {
 
 	vals := &url.Values{}
 
-	vals.Set("aid", a.Id)
-	vals.Set("url", b2s(lcrypt.EncodeHex(s2b(a.Url))))
-	tmp, err := lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Username), key)
+	vals.Set("aid", a.ID)
+	vals.Set("url", b2s(lcrypt.EncodeHex(s2b(a.URL))))
+	tmp, err := lcrypt.EncryptAES256CBCBase64(s2b(a.Username), key)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encrypt username")
 	}
 	vals.Set("username", b2s(tmp))
 
-	tmp, err = lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Password), key)
+	tmp, err = lcrypt.EncryptAES256CBCBase64(s2b(a.Password), key)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encrypt Password")
 	}
 	vals.Set("password", b2s(tmp))
 
-	tmp, err = lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Notes), key)
+	tmp, err = lcrypt.EncryptAES256CBCBase64(s2b(a.Notes), key)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encrypt Notes")
 	}
 	vals.Set("extra", b2s(tmp)) // notes
 
-	tmp, err = lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Name), key)
+	tmp, err = lcrypt.EncryptAES256CBCBase64(s2b(a.Name), key)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encrypt Name")
 	}
 	vals.Set("name", b2s(tmp))
 
-	tmp, err = lcrypt.Encrypt_aes256_cbc_base64(s2b(a.Group), key)
+	tmp, err = lcrypt.EncryptAES256CBCBase64(s2b(a.Group), key)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encrypt Group")
 	}

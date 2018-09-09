@@ -11,10 +11,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Enumeration of common errors.
 var (
 	ErrAccountNotFound = fmt.Errorf("account not found")
 )
 
+// Vault defines a vault.
 type Vault struct {
 	sesh  *session
 	email string
@@ -55,11 +57,11 @@ func (lp Vault) GetAccounts() ([]*Account, error) {
 		return nil, err
 	}
 
-	chunks, err := extractChunks(bytes.NewReader(blob.bytes), []uint32{chunkIdFromString("ACCT")})
+	chunks, err := extractChunks(bytes.NewReader(blob.bytes), []uint32{chunkIDFromString("ACCT")})
 	if err != nil {
 		return nil, err
 	}
-	accountChunks := chunks[chunkIdFromString("ACCT")]
+	accountChunks := chunks[chunkIDFromString("ACCT")]
 	accs := make([]*Account, len(accountChunks))
 
 	for i, chunk := range accountChunks {
@@ -75,7 +77,7 @@ func (lp Vault) GetAccounts() ([]*Account, error) {
 // GetAccount gets LastPass account by unique ID
 // If not found, returns ErrAccountNotFound error
 func (lp Vault) GetAccount(id string) (*Account, error) {
-	accs, err := lp.Search(id, Id, CaseInsensitive)
+	accs, err := lp.Search(id, FieldID, SearchMethodCaseInsensitive)
 	if err != nil {
 		return nil, err
 	} else if accs == nil || len(accs) == 0 {
@@ -92,7 +94,7 @@ func (lp Vault) Search(value string, field Field, method SearchMethod) ([]*Accou
 		return nil, err
 	}
 
-	matchedAccounts := []*Account{}
+	var matchedAccounts []*Account
 
 	matchFunc := matchFuncs[method]
 	for _, acc := range accs {
@@ -115,7 +117,7 @@ func (lp *Vault) UpdateAccount(account *Account) (*Account, error) {
 // CreateAccount sync LastPass vault with the account info given.
 // The return value is the struct with an added Account ID
 func (lp *Vault) CreateAccount(account *Account) (*Account, error) {
-	account.Id = "0"
+	account.ID = "0"
 	resp, err := lp.upsertAccount(account)
 	if err != nil {
 		return nil, err
@@ -124,76 +126,75 @@ func (lp *Vault) CreateAccount(account *Account) (*Account, error) {
 	// https://github.com/gnewton/chidley
 	var response struct {
 		Result struct {
-			AttrAcctname1     string `xml:" acctname1,attr"  json:",omitempty"`
-			AttrAcctname2     string `xml:" acctname2,attr"  json:",omitempty"`
-			AttrAcctname3     string `xml:" acctname3,attr"  json:",omitempty"`
-			AttrAcctname4     string `xml:" acctname4,attr"  json:",omitempty"`
-			AttrAcctname5     string `xml:" acctname5,attr"  json:",omitempty"`
-			AttrAcctname6     string `xml:" acctname6,attr"  json:",omitempty"`
-			AttrAccts_version string `xml:" accts_version,attr"  json:",omitempty"`
-			AttrAction        string `xml:" action,attr"  json:",omitempty"`
-			AttrAid           string `xml:" aid,attr"  json:",omitempty"`
-			AttrCaptcha_id    string `xml:" captcha_id,attr"  json:",omitempty"`
-			AttrCount         string `xml:" count,attr"  json:",omitempty"`
-			AttrCustom_js     string `xml:" custom_js,attr"  json:",omitempty"`
-			AttrDeleted       string `xml:" deleted,attr"  json:",omitempty"`
-			AttrEditlink      string `xml:" editlink,attr"  json:",omitempty"`
-			AttrFav           string `xml:" fav,attr"  json:",omitempty"`
-			AttrGrouping      string `xml:" grouping,attr"  json:",omitempty"`
-			AttrLasttouch     string `xml:" lasttouch,attr"  json:",omitempty"`
-			AttrLaunchjs      string `xml:" launchjs,attr"  json:",omitempty"`
-			AttrLocalupdate   string `xml:" localupdate,attr"  json:",omitempty"`
-			AttrMsg           string `xml:" msg,attr"  json:",omitempty"`
-			AttrPwprotect     string `xml:" pwprotect,attr"  json:",omitempty"`
-			AttrRemoteshare   string `xml:" remoteshare,attr"  json:",omitempty"`
-			AttrSubmit_id     string `xml:" submit_id,attr"  json:",omitempty"`
-			AttrUrid          string `xml:" urid,attr"  json:",omitempty"`
-			AttrUrl           string `xml:" url,attr"  json:",omitempty"`
-			AttrUsername      string `xml:" username,attr"  json:",omitempty"`
-		} `xml:" result,omitempty" json:"result,omitempty"`
+			AttrAcctname1    string `xml:"acctname1,attr"  json:",omitempty"`
+			AttrAcctname2    string `xml:"acctname2,attr"  json:",omitempty"`
+			AttrAcctname3    string `xml:"acctname3,attr"  json:",omitempty"`
+			AttrAcctname4    string `xml:"acctname4,attr"  json:",omitempty"`
+			AttrAcctname5    string `xml:"acctname5,attr"  json:",omitempty"`
+			AttrAcctname6    string `xml:"acctname6,attr"  json:",omitempty"`
+			AttrAcctsVersion string `xml:"accts_version,attr"  json:",omitempty"`
+			AttrAction       string `xml:"action,attr"  json:",omitempty"`
+			AttrAid          string `xml:"aid,attr"  json:",omitempty"`
+			AttrCaptchaID    string `xml:"captcha_id,attr"  json:",omitempty"`
+			AttrCount        string `xml:"count,attr"  json:",omitempty"`
+			AttrCustomJS     string `xml:"custom_js,attr"  json:",omitempty"`
+			AttrDeleted      string `xml:"deleted,attr"  json:",omitempty"`
+			AttrEditlink     string `xml:"editlink,attr"  json:",omitempty"`
+			AttrFav          string `xml:"fav,attr"  json:",omitempty"`
+			AttrGrouping     string `xml:"grouping,attr"  json:",omitempty"`
+			AttrLasttouch    string `xml:"lasttouch,attr"  json:",omitempty"`
+			AttrLaunchjs     string `xml:"launchjs,attr"  json:",omitempty"`
+			AttrLocalupdate  string `xml:"localupdate,attr"  json:",omitempty"`
+			AttrMsg          string `xml:"msg,attr"  json:",omitempty"`
+			AttrPwprotect    string `xml:"pwprotect,attr"  json:",omitempty"`
+			AttrRemoteshare  string `xml:"remoteshare,attr"  json:",omitempty"`
+			AttrSubmitID     string `xml:"submit_id,attr"  json:",omitempty"`
+			AttrUrid         string `xml:"urid,attr"  json:",omitempty"`
+			AttrURL          string `xml:"url,attr"  json:",omitempty"`
+			AttrUsername     string `xml:"username,attr"  json:",omitempty"`
+		} `xml:"result,omitempty" json:"result,omitempty"`
 	}
 
 	if err = xml.NewDecoder(strings.NewReader(resp)).Decode(&response); err != nil && err != io.EOF {
 		return nil, err
 	}
 
-	account.Id = response.Result.AttrAid
+	account.ID = response.Result.AttrAid
 	return account, nil
 }
 
 func (lp *Vault) upsertAccount(account *Account) (string, error) {
-	bUrl := buildLastPassURL("show_website.php")
+	bURL := buildLastPassURL("show_website.php")
 	vals, err := account.encrypt(lp.sesh.key)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to encrypt account")
 	}
-	return post(bUrl, lp.sesh, vals)
+	return post(bURL, lp.sesh, vals)
 }
 
-// DeleteAccount removes an account from the LastPass vault
-// by the Account ID
+// DeleteAccount removes an account from the LastPass vault by the Account ID.
 func (lp *Vault) DeleteAccount(account *Account) error {
-	bUrl := buildLastPassURL("show_website.php")
+	bURL := buildLastPassURL("show_website.php")
 	values := &url.Values{
 		"extjs":  []string{"1"},
 		"token":  []string{"lp.sesh.token"},
 		"delete": []string{"1"},
-		"aid":    []string{account.Id},
+		"aid":    []string{account.ID},
 	}
 
-	resp, err := post(bUrl, lp.sesh, values)
+	resp, err := post(bURL, lp.sesh, values)
 	if err != nil {
 		return err
 	}
 
 	var response struct {
 		Result struct {
-			AttrAccts_version string `xml:" accts_version,attr"  json:",omitempty"`
-			AttrAction        string `xml:" action,attr"  json:",omitempty"`
-			AttrAid           string `xml:" aid,attr"  json:",omitempty"`
-			AttrLocalupdate   string `xml:" localupdate,attr"  json:",omitempty"`
-			AttrMsg           string `xml:" msg,attr"  json:",omitempty"`
-		} `xml:" result,omitempty" json:"result,omitempty"`
+			AttrAcctsVersion string `xml:"accts_version,attr"  json:",omitempty"`
+			AttrAction       string `xml:"action,attr"  json:",omitempty"`
+			AttrAid          string `xml:"aid,attr"  json:",omitempty"`
+			AttrLocalupdate  string `xml:"localupdate,attr"  json:",omitempty"`
+			AttrMsg          string `xml:"msg,attr"  json:",omitempty"`
+		} `xml:"result,omitempty" json:"result,omitempty"`
 	}
 
 	if err = xml.NewDecoder(strings.NewReader(resp)).Decode(&response); err != nil && err != io.EOF {
@@ -201,14 +202,13 @@ func (lp *Vault) DeleteAccount(account *Account) error {
 	}
 
 	if response.Result.AttrMsg != "accountdeleted" {
-		return fmt.Errorf("failed to delete account %s: %s", account.Id, response.Result.AttrMsg)
+		return fmt.Errorf("failed to delete account %s: %s", account.ID, response.Result.AttrMsg)
 	}
 
 	return nil
 }
 
-// DeleteAccountById removes an account from LastPass
-// by the Account ID
-func (lp *Vault) DeleteAccountById(id string) error {
-	return lp.DeleteAccount(&Account{Id: id})
+// DeleteAccountByID removes an account from LastPass by the Account ID.
+func (lp *Vault) DeleteAccountByID(id string) error {
+	return lp.DeleteAccount(&Account{ID: id})
 }

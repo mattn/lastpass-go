@@ -10,10 +10,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Base64Encode ...
 func Base64Encode(data []byte) []byte {
 	return []byte(base64.StdEncoding.EncodeToString(data))
 }
 
+// DecodeBase64 ...
 func DecodeBase64(b []byte) ([]byte, error) {
 	d := make([]byte, len(b))
 	n, err := base64.StdEncoding.Decode(d, b)
@@ -37,24 +39,28 @@ func intBase64Encode(data []byte) []byte {
 	return Base64Encode(data)
 }
 
-func Pkcs7Pad(data []byte, blockSize int) []byte {
+// PKCS7Pad ...
+func PKCS7Pad(data []byte, blockSize int) []byte {
 	padding := blockSize - len(data)%blockSize
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(data, padtext...)
 }
 
-func Pkcs7Unpad(data []byte) []byte {
+// PKCS7Unpad ...
+func PKCS7Unpad(data []byte) []byte {
 	size := len(data)
 	unpadding := int(data[size-1])
 	return data[:(size - unpadding)]
 }
 
+// EncodeHex ...
 func EncodeHex(b []byte) []byte {
 	d := make([]byte, len(b)*2)
 	n := hex.Encode(d, b)
 	return d[:n]
 }
 
+// DecodeHex ...
 func DecodeHex(b []byte) ([]byte, error) {
 	d := make([]byte, len(b))
 	n, err := hex.Decode(d, b)

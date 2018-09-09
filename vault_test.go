@@ -45,9 +45,9 @@ func TestCRUD(t *testing.T) {
 	needsLogin(t)
 
 	accs := map[string]*Account{
-		"site1": {Name: "site1", Username: "site1@yahoo.com", Password: "site1", Url: "site1.com"},
-		"site2": {Name: "site2", Username: "site2@yahoo.com", Password: "site2", Url: "site2.com"},
-		"site3": {Name: "site3", Username: "site2@yahoo.com", Password: "site3", Url: "site2.com"},
+		"site1": {Name: "site1", Username: "site1@yahoo.com", Password: "site1", URL: "site1.com"},
+		"site2": {Name: "site2", Username: "site2@yahoo.com", Password: "site2", URL: "site2.com"},
+		"site3": {Name: "site3", Username: "site2@yahoo.com", Password: "site3", URL: "site2.com"},
 	}
 
 	lp, err := New(config.email, config.password)
@@ -58,8 +58,8 @@ func TestCRUD(t *testing.T) {
 	mustDeleteAccounts(lp)
 
 	for _, a := range accs {
-		newa, err := lp.CreateAccount(a)
-		assert.NoError(t, err)
+		newa, caerr := lp.CreateAccount(a)
+		assert.NoError(t, caerr)
 		assert.NotNil(t, newa)
 	}
 
@@ -86,20 +86,20 @@ func TestChangePassword(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, lp)
 
-	acc := &Account{Name: "testchange", Username: "site1@yahoo.com", Password: "site1", Url: "site1.com"}
+	acc := &Account{Name: "testchange", Username: "site1@yahoo.com", Password: "site1", URL: "site1.com"}
 	acc, err = lp.CreateAccount(acc)
-	assert.NotEqual(t, "0", acc.Id)
+	assert.NotEqual(t, "0", acc.ID)
 	assert.NoError(t, err)
 
 	acc.Password = "newpass"
 	_, err = lp.UpdateAccount(acc)
 	assert.NoError(t, err)
 
-	a, err := lp.GetAccount(acc.Id)
+	a, err := lp.GetAccount(acc.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, "newpass", a.Password)
 
-	assert.NoError(t, lp.DeleteAccountById(a.Id))
+	assert.NoError(t, lp.DeleteAccountByID(a.ID))
 }
 
 func TestIncorrectGoogleAuthCode(t *testing.T) {

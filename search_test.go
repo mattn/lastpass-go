@@ -15,15 +15,15 @@ func TestMatchFuncs(t *testing.T) {
 		searchM SearchMethod
 		match   bool
 	}{
-		{"substring url", "m.facebook.com", "facebook.com", SubstringSensitive, true},
-		{"substring not in url", "facebook.com", "facsebook.com", SubstringInsensitive, false},
-		{"substring in url", "https://stackoverflow.com/", "StackOverflow", SubstringInsensitive, true},
-		{"regex in url", "https://stackOverflow.com/", `(s|S)tack(O|o)verflow`, Regex, true},
-		{"case insens url", "youtube.com", "YouTube.com", CaseInsensitive, true},
-		{"case sens ID", "8675309", "8675309", CaseSensitive, true},
-		{"case insens email", "gimmegimme@gmail.com", `@gmail.com`, CaseSensitive, false},
-		{"regex subdomains only", "m.cnn.com", `.+\.cnn\.com`, Regex, true},
-		{"regex no subdmomains", "fakenews.com", `^fakenews\.com`, Regex, true},
+		{"substring url", "m.facebook.com", "facebook.com", SearchMethodSubstringSensitive, true},
+		{"substring not in url", "facebook.com", "facsebook.com", SearchMethodSubstringInsensitive, false},
+		{"substring in url", "https://stackoverflow.com/", "StackOverflow", SearchMethodSubstringInsensitive, true},
+		{"regex in url", "https://stackOverflow.com/", `(s|S)tack(O|o)verflow`, SearchMethodRegex, true},
+		{"case insens url", "youtube.com", "YouTube.com", SearchMethodCaseInsensitive, true},
+		{"case sens ID", "8675309", "8675309", SearchMethodCaseSensitive, true},
+		{"case insens email", "gimmegimme@gmail.com", `@gmail.com`, SearchMethodCaseSensitive, false},
+		{"regex subdomains only", "m.cnn.com", `.+\.cnn\.com`, SearchMethodRegex, true},
+		{"regex no subdmomains", "fakenews.com", `^fakenews\.com`, SearchMethodRegex, true},
 	}
 
 	for _, tc := range testCases {
@@ -36,14 +36,14 @@ func TestMatchFuncs(t *testing.T) {
 
 func TestAccountGetValue(t *testing.T) {
 	account := Account{
-		Id:       "8675309",
+		ID:       "8675309",
 		Username: "followmeontwitter",
-		Url:      "https://twitter.com/",
+		URL:      "https://twitter.com/",
 		Name:     "Twitter",
 	}
-	assert.Equal(t, account.Id, getValue(account, Id))
-	assert.Equal(t, account.Username, getValue(account, Username))
-	assert.Equal(t, account.Url, getValue(account, Url))
-	assert.Equal(t, account.Name, getValue(account, Name))
-	assert.Equal(t, account.Id, getValue(account, Field(uint32(65165165))))
+	assert.Equal(t, account.ID, getValue(account, FieldID))
+	assert.Equal(t, account.Username, getValue(account, FieldUsername))
+	assert.Equal(t, account.URL, getValue(account, FieldURL))
+	assert.Equal(t, account.Name, getValue(account, FieldName))
+	assert.Equal(t, account.ID, getValue(account, Field(uint32(65165165))))
 }

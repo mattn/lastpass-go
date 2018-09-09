@@ -11,22 +11,22 @@ import (
 	"github.com/pkg/errors"
 )
 
-func chunkIdFromBytes(b [4]byte) uint32 {
+func chunkIDFromBytes(b [4]byte) uint32 {
 	return uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
 }
 
-func chunkIdFromString(s string) uint32 {
+func chunkIDFromString(s string) uint32 {
 	b := []byte(s)
 	return uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
 }
 
-func readId(r io.Reader) (uint32, error) {
+func readID(r io.Reader) (uint32, error) {
 	var b [4]byte
 	_, err := r.Read(b[:])
 	if err != nil {
 		return 0, err
 	}
-	return chunkIdFromBytes(b), nil
+	return chunkIDFromBytes(b), nil
 }
 
 func readSize(r io.Reader) (uint32, error) {
@@ -67,7 +67,7 @@ func skipItem(r io.Reader) error {
 func extractChunks(r io.Reader, filter []uint32) (map[uint32][][]byte, error) {
 	chunks := map[uint32][][]byte{}
 	for {
-		chunkId, err := readId(r)
+		chunkID, err := readID(r)
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -80,8 +80,8 @@ func extractChunks(r io.Reader, filter []uint32) (map[uint32][][]byte, error) {
 		}
 
 		found := false
-		for _, filterId := range filter {
-			if filterId == chunkId {
+		for _, filterID := range filter {
+			if filterID == chunkID {
 				found = true
 				break
 			}
@@ -89,10 +89,10 @@ func extractChunks(r io.Reader, filter []uint32) (map[uint32][][]byte, error) {
 		if !found {
 			continue
 		}
-		if _, ok := chunks[chunkId]; !ok {
-			chunks[chunkId] = [][]byte{payload}
+		if _, ok := chunks[chunkID]; !ok {
+			chunks[chunkID] = [][]byte{payload}
 		} else {
-			chunks[chunkId] = append(chunks[chunkId], payload)
+			chunks[chunkID] = append(chunks[chunkID], payload)
 		}
 	}
 	return chunks, nil
@@ -131,7 +131,7 @@ func parseAccount(r io.Reader, encryptionKey []byte) (*Account, error) {
 
 func decryptBuffer(data, key []byte) ([]byte, error) {
 	// used to decrypt session token
-	// ciphertext =IV  | aes-256-cbc(plaintext, key)
+	// ciphertext = IV | aes-256-cbc(plaintext, key)
 	// authenticated-ciphertext = HMAC-SHA256(ciphertext, key) | ciphertext
 
 	ciphertext := data[sha256.Size:]
@@ -144,7 +144,7 @@ func decryptBuffer(data, key []byte) ([]byte, error) {
 		return nil, fmt.Errorf("payload signature check failed")
 	}
 
-	return lcrypt.Decrypt_aes256_cbc_plain(ciphertext, key)
+	return lcrypt.DecryptAES256CBCPlain(ciphertext, key)
 }
 
 func decryptAES256(data []byte, encryptionKey []byte) (string, error) {
@@ -156,31 +156,31 @@ func decryptAES256(data []byte, encryptionKey []byte) (string, error) {
 	case size == 0:
 		return "", nil
 	case size16 == 0:
-		ptext, err := lcrypt.Decrypt_aes256_ecb_plain(data, encryptionKey)
+		ptext, err := lcrypt.DecryptAES256CBCPlain(data, encryptionKey)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to decrypt field")
 		}
 		return string(ptext), nil
 	case size64 == 0 || size64 == 24 || size64 == 44:
-		ptext, err := lcrypt.Decrypt_aes256_ecb_base64(data, encryptionKey)
+		ptext, err := lcrypt.DecryptAES256ECBBase64(data, encryptionKey)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to decrypt field")
 		}
 		return string(ptext), nil
 	case size16 == 1:
-		ptext, err := lcrypt.Decrypt_aes256_cbc_plain(data[1:], encryptionKey)
+		ptext, err := lcrypt.DecryptAES256CBCPlain(data[1:], encryptionKey)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to decrypt field")
 		}
 		return string(ptext), nil
 	case size64 == 6 || size64 == 26 || size64 == 50:
-		ptext, err := lcrypt.Decrypt_aes256_cbc_base64(data, encryptionKey)
+		ptext, err := lcrypt.DecryptAES256CBCBase64(data, encryptionKey)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to decrypt field")
 		}
 		return string(ptext), nil
 	}
-	return "", fmt.Errorf("Input doesn't seem to be AES-256 encrypted")
+	return "", fmt.Errorf("input doesn't seem to be AES-256 encrypted")
 }
 
 type stickyReader struct {

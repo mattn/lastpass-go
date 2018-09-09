@@ -10,7 +10,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func Decrypt_aes256_cbc_plain(data []byte, encryptionKey []byte) ([]byte, error) {
+// DecryptAES256CBCPlain ...
+func DecryptAES256CBCPlain(data []byte, encryptionKey []byte) ([]byte, error) {
 	block, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new cipher")
@@ -19,10 +20,11 @@ func Decrypt_aes256_cbc_plain(data []byte, encryptionKey []byte) ([]byte, error)
 	dec := cipher.NewCBCDecrypter(block, iv)
 	out := make([]byte, len(in))
 	dec.CryptBlocks(out, in)
-	return Pkcs7Unpad(out), nil
+	return PKCS7Unpad(out), nil
 }
 
-func Decrypt_aes256_cbc_base64(data []byte, encryptionKey []byte) ([]byte, error) {
+// DecryptAES256CBCBase64 ...
+func DecryptAES256CBCBase64(data []byte, encryptionKey []byte) ([]byte, error) {
 	block, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new cipher")
@@ -38,10 +40,11 @@ func Decrypt_aes256_cbc_base64(data []byte, encryptionKey []byte) ([]byte, error
 	dec := cipher.NewCBCDecrypter(block, iv)
 	out := make([]byte, len(in))
 	dec.CryptBlocks(out, in)
-	return Pkcs7Unpad(out), nil
+	return PKCS7Unpad(out), nil
 }
 
-func Decrypt_aes256_ecb_plain(data []byte, encryptionKey []byte) ([]byte, error) {
+// DecryptAES256ECBPlain ...
+func DecryptAES256ECBPlain(data []byte, encryptionKey []byte) ([]byte, error) {
 	block, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new cipher")
@@ -49,10 +52,11 @@ func Decrypt_aes256_ecb_plain(data []byte, encryptionKey []byte) ([]byte, error)
 	dec := NewECBDecrypter(block)
 	out := make([]byte, len(data))
 	dec.CryptBlocks(out, data)
-	return Pkcs7Unpad(out), nil
+	return PKCS7Unpad(out), nil
 }
 
-func Decrypt_aes256_ecb_base64(data []byte, encryptionKey []byte) ([]byte, error) {
+// DecryptAES256ECBBase64 ...
+func DecryptAES256ECBBase64(data []byte, encryptionKey []byte) ([]byte, error) {
 	block, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new cipher")
@@ -65,40 +69,41 @@ func Decrypt_aes256_ecb_base64(data []byte, encryptionKey []byte) ([]byte, error
 	dec := NewECBDecrypter(block)
 	out := make([]byte, len(data))
 	dec.CryptBlocks(out, data)
-	return Pkcs7Unpad(out), nil
+	return PKCS7Unpad(out), nil
 }
 
-func encrypt_aes256_cbc(plaintext, iv, key []byte) ([]byte, error) {
+func encryptAES256CBC(plaintext, iv, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new cipher")
 	}
 
 	mode := cipher.NewCBCEncrypter(block, iv)
-	plaintext = Pkcs7Pad(plaintext, block.BlockSize())
+	plaintext = PKCS7Pad(plaintext, block.BlockSize())
 
 	ciphertext := make([]byte, len(plaintext))
 	mode.CryptBlocks(ciphertext, plaintext)
 	return ciphertext, nil
 }
 
-func Encrypt_aes256_cbc_base64(plaintext, key []byte) ([]byte, error) {
-	iv, _, err := getIv()
+// EncryptAES256CBCBase64 ...
+func EncryptAES256CBCBase64(plaintext, key []byte) ([]byte, error) {
+	iv, _, err := getIV()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get iv to encode aes256")
 	}
 
-	ctext, err := encrypt_aes256_cbc_base64(plaintext, iv, key)
+	ctext, err := encryptAES256CBCBase64(plaintext, iv, key)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to aes256cbc encrypt")
 	}
 	return ctext, nil
 }
 
-func encrypt_aes256_cbc_base64(plaintext, iv, key []byte) ([]byte, error) {
+func encryptAES256CBCBase64(plaintext, iv, key []byte) ([]byte, error) {
 	ciphertext := bytes.NewBufferString("!")
 	ciphertext.Write(iv)
-	ctext, err := encrypt_aes256_cbc(plaintext, iv, key)
+	ctext, err := encryptAES256CBC(plaintext, iv, key)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to aes256cbc encrypt")
 	}
@@ -106,7 +111,7 @@ func encrypt_aes256_cbc_base64(plaintext, iv, key []byte) ([]byte, error) {
 	return intBase64Encode(ciphertext.Bytes()), nil
 }
 
-func getIv() ([]byte, int, error) {
+func getIV() ([]byte, int, error) {
 	iv := make([]byte, aes.BlockSize)
 	n, err := io.ReadFull(rand.Reader, iv)
 	if err != nil {
