@@ -1,32 +1,32 @@
 package lastpass
 
 import (
-	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
-	"encoding/base64"
+	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/binary"
-	"encoding/hex"
-	"github.com/mattn/lastpass-go/ecb"
+	"fmt"
 	"io"
+
+	lcrypt "github.com/djui/lastpass-go/internal/crypt"
+	"github.com/pkg/errors"
 )
 
-func chunkIdFromBytes(b [4]byte) uint32 {
+func chunkIDFromBytes(b [4]byte) uint32 {
 	return uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
 }
 
-func chunkIdFromString(s string) uint32 {
+func chunkIDFromString(s string) uint32 {
 	b := []byte(s)
 	return uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3])
 }
 
-func readId(r io.Reader) (uint32, error) {
+func readID(r io.Reader) (uint32, error) {
 	var b [4]byte
 	_, err := r.Read(b[:])
 	if err != nil {
 		return 0, err
 	}
-	return chunkIdFromBytes(b), nil
+	return chunkIDFromBytes(b), nil
 }
 
 func readSize(r io.Reader) (uint32, error) {
@@ -67,7 +67,7 @@ func skipItem(r io.Reader) error {
 func extractChunks(r io.Reader, filter []uint32) (map[uint32][][]byte, error) {
 	chunks := map[uint32][][]byte{}
 	for {
-		chunkId, err := readId(r)
+		chunkID, err := readID(r)
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -80,8 +80,8 @@ func extractChunks(r io.Reader, filter []uint32) (map[uint32][][]byte, error) {
 		}
 
 		found := false
-		for _, filterId := range filter {
-			if filterId == chunkId {
+		for _, filterID := range filter {
+			if filterID == chunkID {
 				found = true
 				break
 			}
@@ -89,153 +89,143 @@ func extractChunks(r io.Reader, filter []uint32) (map[uint32][][]byte, error) {
 		if !found {
 			continue
 		}
-		if _, ok := chunks[chunkId]; !ok {
-			chunks[chunkId] = [][]byte{payload}
+		if _, ok := chunks[chunkID]; !ok {
+			chunks[chunkID] = [][]byte{payload}
 		} else {
-			chunks[chunkId] = append(chunks[chunkId], payload)
+			chunks[chunkID] = append(chunks[chunkID], payload)
 		}
 	}
 	return chunks, nil
 }
 
 func parseAccount(r io.Reader, encryptionKey []byte) (*Account, error) {
-	id, err := readItem(r)
-	if err != nil {
-		return nil, err
-	}
-	name, err := readItem(r)
-	if err != nil {
-		return nil, err
-	}
-	group, err := readItem(r)
-	if err != nil {
-		return nil, err
-	}
-	url, err := readItem(r)
-	if err != nil {
-		return nil, err
-	}
-	notes, err := readItem(r)
-	if err != nil {
-		return nil, err
+	sr := stickyReader{}
+
+	id := sr.readItem(r)       // id, plain
+	name := sr.readItem(r)     // name, crypt
+	group := sr.readItem(r)    // group, crpyt
+	url := sr.readItem(r)      // url, hex
+	notes := sr.readItem(r)    // note, crypt
+	sr.skipItem(r)             // fav, bool
+	sr.skipItem(r)             // share, _
+	username := sr.readItem(r) // username, crypt
+	password := sr.readItem(r) // password, crypt
+	if sr.hasErr() {
+		return nil, sr.err
 	}
 
-	for i := 0; i < 2; i++ {
-		skipItem(r)
-	}
-
-	username, err := readItem(r)
-	if err != nil {
-		return nil, err
-	}
-	password, err := readItem(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Account{
+	sr = stickyReader{}
+	acc := &Account{
 		string(id),
-		string(decryptAES256(name, encryptionKey)),
-		string(decryptAES256(username, encryptionKey)),
-		string(decryptAES256(password, encryptionKey)),
-		string(decodeHex(url)),
-		string(decryptAES256(group, encryptionKey)),
-		string(decryptAES256(notes, encryptionKey))}, nil
-}
-
-func encodeHex(b []byte) []byte {
-	d := make([]byte, len(b)*2)
-	n := hex.Encode(d, b)
-	return d[:n]
-}
-
-func decodeHex(b []byte) []byte {
-	d := make([]byte, len(b))
-	n, _ := hex.Decode(d, b)
-	return d[:n]
-}
-
-func decodeBase64(b []byte) []byte {
-	d := make([]byte, len(b))
-	n, _ := base64.StdEncoding.Decode(d, b)
-	return d[:n]
-}
-
-func pkcs7Pad(data []byte, blockSize int) []byte {
-	padding := blockSize - len(data)%blockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(data, padtext...)
-}
-
-func pkcs7Unpad(data []byte) []byte {
-	size := len(data)
-	unpadding := int(data[size-1])
-	return data[:(size - unpadding)]
-}
-
-func decrypt_aes256_cbc_plain(data []byte, encryptionKey []byte) []byte {
-	block, err := aes.NewCipher(encryptionKey)
-	if err != nil {
-		panic(err.Error())
+		sr.decryptAES256(name, encryptionKey),
+		sr.decryptAES256(username, encryptionKey),
+		sr.decryptAES256(password, encryptionKey),
+		sr.DecodeHex(url),
+		sr.decryptAES256(group, encryptionKey),
+		sr.decryptAES256(notes, encryptionKey)}
+	if sr.hasErr() {
+		return nil, errors.Wrap(sr.err, "failed to decrypt account")
 	}
-	iv, in := data[:aes.BlockSize], data[aes.BlockSize:]
-	dec := cipher.NewCBCDecrypter(block, iv)
-	out := make([]byte, len(in))
-	dec.CryptBlocks(out, in)
-	return pkcs7Unpad(out)
+	return acc, nil
 }
 
-func decrypt_aes256_cbc_base64(data []byte, encryptionKey []byte) []byte {
-	block, err := aes.NewCipher(encryptionKey)
-	if err != nil {
-		panic(err.Error())
+func decryptBuffer(data, key []byte) ([]byte, error) {
+	// used to decrypt session token
+	// ciphertext = IV | aes-256-cbc(plaintext, key)
+	// authenticated-ciphertext = HMAC-SHA256(ciphertext, key) | ciphertext
+
+	ciphertext := data[sha256.Size:]
+	givenDigest := data[:sha256.Size]
+	h := hmac.New(sha256.New, key)
+	h.Write(ciphertext)
+	calcdDigest := h.Sum(nil)
+
+	if !hmac.Equal(calcdDigest, givenDigest) {
+		return nil, fmt.Errorf("payload signature check failed")
 	}
-	iv, in := decodeBase64(data[:24]), decodeBase64(data[24:])
-	dec := cipher.NewCBCDecrypter(block, iv)
-	out := make([]byte, len(in))
-	dec.CryptBlocks(out, in)
-	return pkcs7Unpad(out)
+
+	return lcrypt.DecryptAES256CBCPlain(ciphertext, key)
 }
 
-func decrypt_aes256_ecb_plain(data []byte, encryptionKey []byte) []byte {
-	block, err := aes.NewCipher(encryptionKey)
-	if err != nil {
-		panic(err.Error())
-	}
-	dec := ecb.NewECBDecrypter(block)
-	out := make([]byte, len(data))
-	dec.CryptBlocks(out, data)
-	return pkcs7Unpad(out)
-}
-
-func decrypt_aes256_ecb_base64(data []byte, encryptionKey []byte) []byte {
-	block, err := aes.NewCipher(encryptionKey)
-	if err != nil {
-		panic(err.Error())
-	}
-	data = decodeBase64(data)
-	dec := ecb.NewECBDecrypter(block)
-	out := make([]byte, len(data))
-	dec.CryptBlocks(out, data)
-	return pkcs7Unpad(out)
-}
-
-func decryptAES256(data []byte, encryptionKey []byte) string {
+func decryptAES256(data []byte, encryptionKey []byte) (string, error) {
 	size := len(data)
 	size16 := size % 16
 	size64 := size % 64
 
 	switch {
 	case size == 0:
-		return ""
+		return "", nil
 	case size16 == 0:
-		return string(decrypt_aes256_ecb_plain(data, encryptionKey))
+		ptext, err := lcrypt.DecryptAES256CBCPlain(data, encryptionKey)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to decrypt field")
+		}
+		return string(ptext), nil
 	case size64 == 0 || size64 == 24 || size64 == 44:
-		return string(decrypt_aes256_ecb_base64(data, encryptionKey))
+		ptext, err := lcrypt.DecryptAES256ECBBase64(data, encryptionKey)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to decrypt field")
+		}
+		return string(ptext), nil
 	case size16 == 1:
-		return string(decrypt_aes256_cbc_plain(data[1:], encryptionKey))
+		ptext, err := lcrypt.DecryptAES256CBCPlain(data[1:], encryptionKey)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to decrypt field")
+		}
+		return string(ptext), nil
 	case size64 == 6 || size64 == 26 || size64 == 50:
-		return string(decrypt_aes256_cbc_base64(data, encryptionKey))
+		ptext, err := lcrypt.DecryptAES256CBCBase64(data, encryptionKey)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to decrypt field")
+		}
+		return string(ptext), nil
 	}
-	panic("Input doesn't seem to be AES-256 encrypted")
+	return "", fmt.Errorf("input doesn't seem to be AES-256 encrypted")
+}
+
+type stickyReader struct {
+	err error
+}
+
+func (s *stickyReader) skipItem(reader io.Reader) {
+	if s.hasErr() {
+		return
+	}
+
+	skipItem(reader)
+}
+func (s *stickyReader) DecodeHex(val []byte) string {
+	if s.hasErr() {
+		return ""
+	}
+	ptext, err := lcrypt.DecodeHex(val)
+	if err != nil {
+		s.err = err
+	}
+	return string(ptext)
+}
+func (s *stickyReader) decryptAES256(name, encryptionKey []byte) string {
+	if s.hasErr() {
+		return ""
+	}
+	ptext, err := decryptAES256(name, encryptionKey)
+	if err != nil {
+		s.err = err
+	}
+	return ptext
+}
+func (s *stickyReader) readItem(reader io.Reader) []byte {
+	if s.hasErr() {
+		return nil
+	}
+
+	item, err := readItem(reader)
+	if err != nil {
+		s.err = err
+	}
+
+	return item
+}
+func (s stickyReader) hasErr() bool {
+	return s.err != nil
 }
